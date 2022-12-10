@@ -44,8 +44,8 @@ export default defineNuxtModule({
         options.defaultStrategy = options.defaultStrategy || strategies.length ? strategies[0].name : '';
 
         // Install http module if not in modules
-        if (!nuxt.options.modules.includes('@nuxtjs-alt/http')) {
-            installModule('@nuxtjs-alt/http')
+        if (!nuxt.options.modules.includes('@nuxt-alt/http')) {
+            installModule('@nuxt-alt/http')
         }
 
         // Add auth plugin
