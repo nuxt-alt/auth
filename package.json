@@ -1,0 +1,66 @@
+{
+    "name": "@nuxt-alt/auth",
+    "version": "2.1.8",
+    "description": "An alternative module to @nuxtjs/auth",
+    "homepage": "https://github.com/nuxt-alt/auth",
+    "author": "Teranode",
+    "keywords": [
+        "nuxt",
+        "nuxtjs",
+        "nuxt-module",
+        "nuxt-plugin",
+        "nuxt-module-alternatives",
+        "@nuxtjs/auth"
+    ],
+    "license": "MIT",
+    "type": "module",
+    "sideEffects": false,
+    "exports": {
+        ".": {
+            "import": "./dist/module.mjs",
+            "require": "./dist/module.cjs"
+        }
+    },
+    "main": "./dist/module.cjs",
+    "module": "./dist/module.mjs",
+    "types": "./dist/types/index.d.ts",
+    "files": [
+        "dist"
+    ],
+    "scripts": {
+        "dev": "nuxi dev playground",
+        "dev:build": "nuxi build playground",
+        "dev:prepare": "unbuild --stub && nuxi prepare playground",
+        "prepack": "unbuild"
+    },
+    "dependencies": {
+        "@nuxt/kit": "^3.0.0",
+        "@nuxt-alt/http": "latest",
+        "@pinia/nuxt": "latest",
+        "body-parser": "latest",
+        "cookie-es": "latest",
+        "jwt-decode": "latest",
+        "requrl": "latest",
+        "defu": "latest",
+        "ohash": "latest",
+        "pathe": "latest"
+    },
+    "devDependencies": {
+        "@nuxt/schema": "3.0.0",
+        "fdir": "latest",
+        "nuxt": "^3.0.0",
+        "unbuild": "latest"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/nuxt-alt/auth.git",
+        "directory": "@nuxt-alt/auth"
+    },
+    "bugs": {
+        "url": "https://github.com/nuxt-alt/auth/issues"
+    },
+    "publishConfig": {
+        "access": "public"
+    },
+    "packageManager": "yarn@3.3.0"
+}
