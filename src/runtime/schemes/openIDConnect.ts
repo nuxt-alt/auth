@@ -156,7 +156,7 @@ export class OpenIDConnectScheme<OptionsT extends OpenIDConnectSchemeOptions = O
             return;
         }
 
-        if (! this.options.fetchRemote && this.idToken.get()) {
+        if (!this.options.fetchRemote && this.idToken.get()) {
             const data = this.idToken.userInfo();
             this.$auth.setUser(data);
             return;
