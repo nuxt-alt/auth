@@ -257,9 +257,14 @@ export class OpenIDConnectScheme<OptionsT extends OpenIDConnectSchemeOptions = O
             this.idToken.set(idToken);
         }
 
-        // Redirect to home
-        this.$auth.redirect('home', false, false);
-
-        return true; // True means a redirect happened
+        if (this.options.clientWindow) {
+            if (globalThis.opener) {
+                globalThis.opener.postMessage({ isLoggedIn: true })
+                globalThis.close()
+            }
+        } else if (this.$auth.options.watchLoggedIn) {
+            this.$auth.redirect('home', false, false);
+            return true; // True means a redirect happened
+        }
     }
 }
