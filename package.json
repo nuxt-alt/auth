@@ -39,6 +39,7 @@
         "@pinia/nuxt": "latest",
         "body-parser": "latest",
         "cookie-es": "latest",
+        "crypto-js": "^4.1.1",
         "defu": "latest",
         "jwt-decode": "latest",
         "ohash": "latest",

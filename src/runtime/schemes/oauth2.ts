@@ -7,6 +7,7 @@ import { joinURL, getQuery, withQuery } from 'ufo'
 import { BaseScheme } from './base';
 import { useRoute, useRuntimeConfig } from '#imports';
 import requrl from 'requrl';
+import sha256 from 'crypto-js/sha256.js';
 
 export interface Oauth2SchemeEndpoints extends EndpointsOption {
     authorization: string;
@@ -197,6 +198,7 @@ export class Oauth2Scheme<OptionsT extends Oauth2SchemeOptions = Oauth2SchemeOpt
         this.requestHandler.reset();
     }
 
+    // Dont use any await statements inside of this method, it breaks clientWindow support in Safari
     async login($opts: { state?: string; params?: any; nonce?: string } = {}): Promise<void> {
         const opts = {
             protocol: 'oauth2',
@@ -241,7 +243,7 @@ export class Oauth2Scheme<OptionsT extends Oauth2SchemeOptions = Oauth2SchemeOpt
                         this.$auth.$storage.setUniversal(this.name + '.pkce_state', state);
                         const codeVerifier = this.generateRandomString();
                         this.$auth.$storage.setUniversal(this.name + '.pkce_code_verifier', codeVerifier);
-                        const codeChallenge = await this.pkceChallengeFromVerifier(codeVerifier, opts.code_challenge_method === 'S256');
+                        const codeChallenge = this.pkceChallengeFromVerifier(codeVerifier, opts.code_challenge_method === 'S256');
                         opts.code_challenge = globalThis.encodeURIComponent(codeChallenge);
                     }
                     break;
@@ -478,9 +480,9 @@ export class Oauth2Scheme<OptionsT extends Oauth2SchemeOptions = Oauth2SchemeOpt
         }
     }
 
-    protected async pkceChallengeFromVerifier(v: string, hashValue: boolean): Promise<string> {
+    protected pkceChallengeFromVerifier(v: string, hashValue: boolean): string {
         if (hashValue) {
-            const hashed = await this.#sha256(v);
+            const hashed = this.#sha256(v);
             return this.#base64UrlEncode(hashed);
         }
         return v; // plain is plain - url-encoded by default
@@ -492,10 +494,11 @@ export class Oauth2Scheme<OptionsT extends Oauth2SchemeOptions = Oauth2SchemeOpt
         return Array.from(array, (dec) => ('0' + dec.toString(16)).slice(-2)).join('');
     }
 
-    #sha256(plain: string): Promise<ArrayBuffer> {
+    #sha256(plain: string): ArrayBuffer {
         const encoder = new TextEncoder();
         const data = encoder.encode(plain);
-        return globalThis.crypto.subtle.digest('SHA-256', data);
+        // Using the native browser crypto API here breaks clientWindow in Safari
+        return sha256(data);
     }
 
     #base64UrlEncode(str: ArrayBuffer): string {
