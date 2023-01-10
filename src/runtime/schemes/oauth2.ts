@@ -88,7 +88,7 @@ export class Oauth2Scheme<OptionsT extends Oauth2SchemeOptions = Oauth2SchemeOpt
     refreshToken: RefreshToken;
     refreshController: RefreshController;
     requestHandler: RequestHandler;
-    #clientWindowReference: Window | undefined | null
+    #clientWindowReference: Window | undefined | null;
 
     constructor($auth: Auth, options: SchemePartialOptions<Oauth2SchemeOptions>, ...defaults: SchemePartialOptions<Oauth2SchemeOptions>[]) {
         super($auth, options as OptionsT, ...(defaults as OptionsT[]), DEFAULTS as OptionsT);
@@ -106,6 +106,9 @@ export class Oauth2Scheme<OptionsT extends Oauth2SchemeOptions = Oauth2SchemeOpt
 
         // Initialize Request Handler
         this.requestHandler = new RequestHandler(this, this.$auth.ctx.$http);
+
+        // Initialize Client Window Reference
+        this.#clientWindowReference = null;
     }
 
     protected get scope(): string {
