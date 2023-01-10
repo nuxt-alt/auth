@@ -12,6 +12,7 @@ export interface OpenIDConnectSchemeEndpoints extends Oauth2SchemeEndpoints {
 }
 
 export interface OpenIDConnectSchemeOptions extends Oauth2SchemeOptions, IdTokenableSchemeOptions {
+    fetchRemote: boolean;
     endpoints: OpenIDConnectSchemeEndpoints;
 }
 
@@ -26,6 +27,7 @@ const DEFAULTS: SchemePartialOptions<OpenIDConnectSchemeOptions> = {
         prefix: '_id_token.',
         expirationPrefix: '_id_token_expiration.',
     },
+    fetchRemote: false,
     codeChallengeMethod: 'S256',
 };
 
@@ -154,7 +156,7 @@ export class OpenIDConnectScheme<OptionsT extends OpenIDConnectSchemeOptions = O
             return;
         }
 
-        if (this.idToken.get()) {
+        if (!this.options.fetchRemote && this.idToken.get()) {
             const data = this.idToken.userInfo();
             this.$auth.setUser(data);
             return;
@@ -255,9 +257,14 @@ export class OpenIDConnectScheme<OptionsT extends OpenIDConnectSchemeOptions = O
             this.idToken.set(idToken);
         }
 
-        // Redirect to home
-        this.$auth.redirect('home', false, false);
-
-        return true; // True means a redirect happened
+        if (this.options.clientWindow) {
+            if (globalThis.opener) {
+                globalThis.opener.postMessage({ isLoggedIn: true })
+                globalThis.close()
+            }
+        } else if (this.$auth.options.watchLoggedIn) {
+            this.$auth.redirect('home', false, false);
+            return true; // True means a redirect happened
+        }
     }
 }
