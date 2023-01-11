@@ -21,6 +21,8 @@ export const getAuthPlugin = (options: {
 }): string => {
     return `import { Auth, ExpiredAuthSessionError } from '#auth/runtime'
 import { defineNuxtPlugin } from '#imports'
+import { defu } from 'defu';
+
 // Active schemes
 ${options.schemeImports.map((i) => `import { ${i.name}${i.name !== i.as ? ' as ' + i.as : ''} } from '${i.from}'`).join('\n')}
 
@@ -35,7 +37,7 @@ export default defineNuxtPlugin(nuxtApp => {
     ${options.strategies.map((strategy) => {
         const scheme = options.strategyScheme[strategy.name!]
         const schemeOptions = JSON.stringify(strategy, null, 2)
-        return `auth.registerStrategy('${strategy.name}', new ${scheme.as}(auth, ${schemeOptions}));`
+        return `auth.registerStrategy('${strategy.name}', new ${scheme.as}(auth, defu(useRuntimeConfig()?.public?.auth?.strategies?.['${strategy.name}'], ${schemeOptions})))`
     }).join(';\n')}
 
     nuxtApp.provide('auth', auth)
@@ -48,7 +50,7 @@ export default defineNuxtPlugin(nuxtApp => {
             if (error instanceof ExpiredAuthSessionError) {
                 return
             }
-        
+
             console.error('[ERROR] [AUTH]', error)
         }
     })
