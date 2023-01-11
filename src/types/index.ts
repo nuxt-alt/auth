@@ -29,6 +29,9 @@ declare module '@nuxt/schema' {
     export interface RuntimeConfig {
         auth?: Partial<ModuleOptions>
     }
+    interface PublicRuntimeConfig {
+        auth?: Partial<ModuleOptions>
+    }
 }
 
 declare const NuxtAuth: NuxtSchema.NuxtModule<Partial<ModuleOptions>>
