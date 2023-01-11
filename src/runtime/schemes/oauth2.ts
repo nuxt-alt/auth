@@ -223,6 +223,36 @@ export class Oauth2Scheme<OptionsT extends Oauth2SchemeOptions = Oauth2SchemeOpt
             opts.audience = this.options.audience;
         }
 
+        // Creating / opening the window needs to happen before any await call
+        // Without this safari will block the popup
+        if (opts.clientWindow) {
+            if (this.#clientWindowReference === null || this.#clientWindowReference?.closed) {
+                // Window features to center popup in middle of parent window
+                const windowFeatures = this.clientWindowFeatures(opts.clientWindowWidth, opts.clientWindowHeight)
+
+                this.#clientWindowReference = globalThis.open('about:blank', 'oauth2-client-window', windowFeatures)
+
+                let strategy = this.$auth.$state.strategy
+
+                let listener = this.clientWindowCallback.bind(this)
+
+                // setting listener to know about approval from oauth provider
+                globalThis.addEventListener('message', listener)
+
+                // watching pop up window and clearing listener when it closes
+                // or is being used by a different provider
+                let checkPopUpInterval = setInterval(() => {
+                    if (this.#clientWindowReference?.closed || strategy !== this.$auth.$state.strategy) {
+                        globalThis.removeEventListener('message', listener)
+                        this.#clientWindowReference = null
+                        clearInterval(checkPopUpInterval)
+                    }
+                }, 500)
+            } else {
+                this.#clientWindowReference!.focus()
+            }
+        }
+
         // Set Nonce Value if response_type contains id_token to mitigate Replay Attacks
         // More Info: https://openid.net/specs/openid-connect-core-1_0.html#NonceNotes
         // More Info: https://tools.ietf.org/html/draft-ietf-oauth-v2-threatmodel-06#section-4.6.2
@@ -264,30 +294,8 @@ export class Oauth2Scheme<OptionsT extends Oauth2SchemeOptions = Oauth2SchemeOpt
         const url = withQuery(this.options.endpoints.authorization, opts);
 
         if (opts.clientWindow) {
-            if (this.#clientWindowReference === null || this.#clientWindowReference!.closed) {
-                // Window features to center popup in middle of parent window
-                const windowFeatures = this.clientWindowFeatures(opts.clientWindowWidth, opts.clientWindowHeight)
-
-                this.#clientWindowReference = globalThis.open(url, 'oauth2-client-window', windowFeatures)
-
-                let strategy = this.$auth.$state.strategy
-
-                let listener = this.clientWindowCallback.bind(this)
-
-                // setting listener to know about approval from oauth provider
-                globalThis.addEventListener('message', listener)
-
-                // watching pop up window and clearing listener when it closes
-                // or is being used by a different provider
-                let checkPopUpInterval = setInterval(() => {
-                    if (this.#clientWindowReference!.closed || strategy !== this.$auth.$state.strategy) {
-                        globalThis.removeEventListener('message', listener)
-                        this.#clientWindowReference = null
-                        clearInterval(checkPopUpInterval)
-                    }
-                }, 500)
-            } else {
-                this.#clientWindowReference!.focus()
+            if (this.#clientWindowReference) {
+                this.#clientWindowReference.location = url;
             }
         } else {
             globalThis.location.replace(url)
