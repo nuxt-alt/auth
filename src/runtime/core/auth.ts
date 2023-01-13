@@ -33,7 +33,7 @@ export class Auth {
             loggedIn: false
         };
 
-        const storage = new Storage(ctx, { 
+        const storage = new Storage(ctx, {
             ...options,
             initialState
         });
@@ -109,6 +109,7 @@ export class Auth {
         finally {
             if (process.client && this.options.watchLoggedIn) {
                 this.$storage.watchState('loggedIn', (loggedIn: boolean) => {
+                    if (this.$state.loggedIn === loggedIn) return;
                     if (Object.hasOwn(useRoute().meta, 'auth') && !routeMeta(useRoute(), 'auth', false)) {
                         this.redirect(loggedIn ? 'home' : 'logout');
                     }
@@ -339,7 +340,7 @@ export class Auth {
     }
 
     /**
-     * 
+     *
      * @param name redirect name
      * @param route (default: false) Internal useRoute() (false) or manually specify
      * @param router (default: true) Whether to use nuxt redirect (true) or window redirect (false)
