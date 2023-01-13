@@ -1,7 +1,7 @@
 import type { ProviderPartialOptions, HTTPRequest, ProviderOptions } from '../types';
 import type { CookieSchemeOptions } from '../runtime';
 import type { Nuxt } from '@nuxt/schema'
-import { assignDefaults } from '../utils/provider';
+import { assignAbsoluteEndpoints, assignDefaults } from '../utils/provider';
 
 export interface LaravelSanctumProviderOptions extends ProviderOptions, CookieSchemeOptions {}
 
@@ -45,4 +45,6 @@ export function laravelSanctum(nuxt: Nuxt, strategy: ProviderPartialOptions<Lara
     };
 
     assignDefaults(strategy, DEFAULTS)
+
+    assignAbsoluteEndpoints(strategy)
 }
