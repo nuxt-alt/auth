@@ -18,6 +18,7 @@ export interface CookieSchemeCookie {
 
 export interface CookieSchemeOptions {
     name: string;
+    url?: string;
     endpoints: CookieSchemeEndpoints;
     user: CookieUserOptions;
     cookie: CookieSchemeCookie;
