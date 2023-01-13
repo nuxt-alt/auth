@@ -1,6 +1,6 @@
 {
     "name": "@nuxt-alt/auth",
-    "version": "2.2.1",
+    "version": "2.2.2",
     "description": "An alternative module to @nuxtjs/auth",
     "homepage": "https://github.com/nuxt-alt/auth",
     "author": "Teranode",
@@ -46,7 +46,7 @@
         "requrl": "latest"
     },
     "devDependencies": {
-        "@nuxt/schema": "3.0.0",
+        "@nuxt/schema": "^3.0.0",
         "fdir": "latest",
         "nuxt": "^3.0.0",
         "unbuild": "latest"
