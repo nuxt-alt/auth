@@ -14,6 +14,7 @@ export interface ModuleOptions {
     watchLoggedIn: boolean;
     rewriteRedirects: boolean;
     fullPathRedirect: boolean;
+    maintainQueryParamsOnRedirects: boolean;
     scopeKey: string;
     redirect: {
         login: string;

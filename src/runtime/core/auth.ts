@@ -392,14 +392,19 @@ export class Auth {
         if (isSamePath(to, from)) {
             return;
         }
-
         const query = activeRoute.query;
         const queryString = Object.keys(query).map((key) => key + '=' + query[key]).join('&');
 
+        let redirectTo = to;
+
+        if (this.options.maintainQueryParamsOnRedirects) {
+            redirectTo += (queryString ? '?' + queryString : '');
+        }
+
         if (!router) {
-            window.location.replace(to + (queryString ? '?' + queryString : ''));
+            window.location.replace(redirectTo);
         } else {
-            activeRouter.push(to + (queryString ? '?' + queryString : ''));
+            activeRouter.push(redirectTo);
         }
     }
 
