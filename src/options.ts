@@ -20,7 +20,7 @@ export const moduleDefaults = {
 
     fullPathRedirect: false,
 
-    maintainQueryParamsOnRedirects: true,
+    redirectStrategy: 'storage',
 
     watchLoggedIn: true,
 

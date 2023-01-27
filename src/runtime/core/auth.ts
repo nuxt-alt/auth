@@ -364,24 +364,28 @@ export class Auth {
             return;
         }
 
+        const queryReturnTo = activeRoute.query.to;
+
         // Apply rewrites
         if (this.options.rewriteRedirects) {
-            if (name === 'logout' && isRelativeURL(from) && !isSamePath(to, from)) {
-                this.$storage.setUniversal('redirect', from);
-            }
-
-            if (name === 'login' && isRelativeURL(from) && !isSamePath(to, from)) {
-                this.$storage.setUniversal('redirect', from);
+            if (['logout', 'login'].includes(name) && isRelativeURL(from) && !isSamePath(to, from)) {
+                if (this.options.redirectStrategy === 'query') {
+                    to = to + '?to=' + encodeURIComponent(queryReturnTo ? queryReturnTo : from);
+                }
+                if (this.options.redirectStrategy === 'storage') {
+                    this.$storage.setUniversal('redirect', from);
+                }
             }
 
             if (name === 'home') {
-                const redirect = this.$storage.getUniversal('redirect') as string;
+                let redirect = decodeURIComponent(activeRoute.query.to);
 
-                this.$storage.setUniversal('redirect', null);
-
-                if (isRelativeURL(redirect)) {
-                    to = redirect;
+                if (this.options.redirectStrategy === 'storage') {
+                    redirect = this.$storage.getUniversal('redirect') as string;
+                    this.$storage.setUniversal('redirect', null);
                 }
+
+                to = redirect;
             }
         }
 
@@ -395,16 +399,14 @@ export class Auth {
         const query = activeRoute.query;
         const queryString = Object.keys(query).map((key) => key + '=' + query[key]).join('&');
 
-        let redirectTo = to;
-
-        if (this.options.maintainQueryParamsOnRedirects) {
-            redirectTo += (queryString ? '?' + queryString : '');
+        if (this.options.redirectStrategy === 'storage') {
+            to += (queryString ? '?' + queryString : '');
         }
 
-        if (!router) {
-            window.location.replace(redirectTo);
+        if (!router || !isRelativeURL(to)) {
+            window.location.replace(to);
         } else {
-            activeRouter.push(redirectTo);
+            activeRouter.push(to);
         }
     }
 
