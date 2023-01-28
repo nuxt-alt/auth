@@ -14,7 +14,7 @@ export interface ModuleOptions {
     watchLoggedIn: boolean;
     rewriteRedirects: boolean;
     fullPathRedirect: boolean;
-    redirectStrategy: string;
+    redirectStrategy?: string;
     scopeKey: string;
     redirect: {
         login: string;
