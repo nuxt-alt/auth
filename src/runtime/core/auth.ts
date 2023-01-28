@@ -370,7 +370,7 @@ export class Auth {
         if (this.options.rewriteRedirects) {
             if (['logout', 'login'].includes(name) && isRelativeURL(from) && !isSamePath(to, from)) {
                 if (this.options.redirectStrategy === 'query') {
-                    to = to + '?to=' + encodeURIComponent(queryReturnTo ? queryReturnTo : from);
+                    to = to + '?to=' + encodeURIComponent((queryReturnTo ? queryReturnTo : from) as string);
                 }
                 if (this.options.redirectStrategy === 'storage') {
                     this.$storage.setUniversal('redirect', from);
@@ -378,7 +378,7 @@ export class Auth {
             }
 
             if (name === 'home') {
-                let redirect = decodeURIComponent(activeRoute.query.to);
+                let redirect = decodeURIComponent(activeRoute.query.to as string);
 
                 if (this.options.redirectStrategy === 'storage') {
                     redirect = this.$storage.getUniversal('redirect') as string;
