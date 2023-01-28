@@ -20,6 +20,8 @@ export const moduleDefaults = {
 
     fullPathRedirect: false,
 
+    redirectStrategy: 'storage',
+
     watchLoggedIn: true,
 
     redirect: {
