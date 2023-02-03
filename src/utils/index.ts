@@ -6,6 +6,16 @@ export const isUnset = (o: any): boolean => typeof o === 'undefined' || o === nu
 
 export const isSet = (o: any): boolean => !isUnset(o);
 
+export function parseQuery(queryString: string): Record<string, unknown> {
+const query = {}
+    const pairs = queryString.split('&')
+    for (let i = 0; i < pairs.length; i++) {
+        const pair = pairs[i].split('=')
+        query[decodeURIComponent(pair[0])] = decodeURIComponent(pair[1] || '')
+    }
+    return query
+}
+
 export function isRelativeURL(u: string) {
     return (u && u.length && new RegExp(['^\\/([a-zA-Z0-9@\\-%_~.:]', '[/a-zA-Z0-9@\\-%_~.:]*)?', '([?][^#]*)?(#[^#]*)?$'].join('')).test(u));
 }

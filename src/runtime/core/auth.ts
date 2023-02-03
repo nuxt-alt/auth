@@ -378,14 +378,16 @@ export class Auth {
             }
 
             if (name === 'home') {
-                let redirect = decodeURIComponent(activeRoute.query.to as string);
+                let redirect = activeRoute.query.to ? decodeURIComponent(activeRoute.query.to as string) : undefined;
 
                 if (this.options.redirectStrategy === 'storage') {
                     redirect = this.$storage.getUniversal('redirect') as string;
                     this.$storage.setUniversal('redirect', null);
                 }
 
-                to = redirect;
+                if (redirect) {
+                    to = redirect;
+                }
             }
         }
 
