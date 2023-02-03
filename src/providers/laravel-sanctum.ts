@@ -46,5 +46,7 @@ export function laravelSanctum(nuxt: Nuxt, strategy: ProviderPartialOptions<Lara
 
     assignDefaults(strategy, DEFAULTS)
 
-    assignAbsoluteEndpoints(strategy)
+    if (strategy.url) {
+        assignAbsoluteEndpoints(strategy)
+    }
 }

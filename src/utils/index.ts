@@ -7,7 +7,7 @@ export const isUnset = (o: any): boolean => typeof o === 'undefined' || o === nu
 export const isSet = (o: any): boolean => !isUnset(o);
 
 export function parseQuery(queryString: string): Record<string, unknown> {
-const query = {}
+    const query: any = {}
     const pairs = queryString.split('&')
     for (let i = 0; i < pairs.length; i++) {
         const pair = pairs[i].split('=')
@@ -68,7 +68,7 @@ export function decodeValue(val: any): any {
     if (typeof val === 'string') {
         try {
             return JSON.parse(val);
-        } catch (_) {}
+        } catch (_) { }
     }
 
     // Return as is

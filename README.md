@@ -68,6 +68,13 @@ Changed from vuex to pinia, this is the namespace to use for the pinia store.
 
 Similar to the localstorage option, there is a session storage options available for you to use.
 
+### `redirectStrategy`
+
+- Type: `query | storage`
+- Default: `storage`
+
+The type of redirection strategy you want to use, `storage` utilizng localStorage for redirects, `query` utilizing the route query parameters.
+
 ## Cookie-based auth
 
 The cookie scheme has been decoupled from the local scheme as it does not utitlize tokens, rather it it uses cookies.
