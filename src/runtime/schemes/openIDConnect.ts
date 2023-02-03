@@ -1,11 +1,11 @@
 import type { HTTPResponse, SchemeCheck, SchemePartialOptions } from '../../types';
 import type { Auth } from '..';
 import { Oauth2Scheme, Oauth2SchemeEndpoints, Oauth2SchemeOptions } from './oauth2';
-import { normalizePath, getProp } from '../../utils';
+import { normalizePath, getProp, parseQuery } from '../../utils';
 import { IdToken, ConfigurationDocument } from '../inc';
 import { IdTokenableSchemeOptions } from '../../types';
 import { useRoute } from '#imports';
-import { getQuery, withQuery, QueryObject, QueryValue } from 'ufo'
+import { withQuery, QueryObject, QueryValue } from 'ufo'
 
 export interface OpenIDConnectSchemeEndpoints extends Oauth2SchemeEndpoints {
     configuration: string;
@@ -176,6 +176,7 @@ export class OpenIDConnectScheme<OptionsT extends OpenIDConnectSchemeOptions = O
 
     async #handleCallback() {
         const route = useRoute();
+
         // Handle callback only for specified route
         if (this.$auth.options.redirect && normalizePath(route.path) !== normalizePath(this.$auth.options.redirect.callback)) {
             return;
@@ -186,7 +187,7 @@ export class OpenIDConnectScheme<OptionsT extends OpenIDConnectSchemeOptions = O
             return;
         }
 
-        const hash = getQuery(route.hash.slice(1));
+        const hash = parseQuery(route.hash.slice(1));
         const parsedQuery = Object.assign({}, route.query, hash);
 
         // accessToken/idToken
@@ -204,12 +205,13 @@ export class OpenIDConnectScheme<OptionsT extends OpenIDConnectSchemeOptions = O
         // Validate state
         const state = this.$auth.$storage.getUniversal(this.name + '.state');
         this.$auth.$storage.setUniversal(this.name + '.state', null);
+
         if (state && parsedQuery.state !== state) {
             return;
         }
 
         // -- Authorization Code Grant --
-        if (this.options.responseType === 'code' && parsedQuery.code) {
+        if (this.options.responseType.includes('code') && parsedQuery.code) {
             let codeVerifier: any;
 
             // Retrieve code verifier and remove it from storage
