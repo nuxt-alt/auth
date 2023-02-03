@@ -27,7 +27,7 @@ export class Token {
         this.#updateExpiration(token, expiresIn);
 
         if (typeof token === 'string') {
-            this.scheme.requestHandler.setHeader(token);
+            this.scheme.requestHandler!.setHeader(token);
         }
 
         return token;
@@ -38,14 +38,14 @@ export class Token {
         this.#syncExpiration();
 
         if (typeof token === 'string') {
-            this.scheme.requestHandler.setHeader(token);
+            this.scheme.requestHandler!.setHeader(token);
         }
 
         return token;
     }
 
     reset(): void {
-        this.scheme.requestHandler.clearHeader();
+        this.scheme.requestHandler!.clearHeader();
         this.#setToken(false);
         this.#setExpiration(false);
     }

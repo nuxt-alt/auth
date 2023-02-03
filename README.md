@@ -75,6 +75,12 @@ Similar to the localstorage option, there is a session storage options available
 
 The type of redirection strategy you want to use, `storage` utilizng localStorage for redirects, `query` utilizing the route query parameters.
 
+## Tokens (Types)
+
+In addition to [Auth Tokens](https://auth.nuxtjs.org/api/tokens);
+
+By default the `$auth.strategy` getter uses the `Scheme` type which does not have `token` or `refreshToken` property types. To help with this, a `$auth.refreshStrategy` and a `$auth.tokenStrategy` getter have been added for typing. They all do the same thing, this is just meant for type hinting.
+
 ## Cookie-based auth
 
 The cookie scheme has been decoupled from the local scheme as it does not utitlize tokens, rather it it uses cookies.
