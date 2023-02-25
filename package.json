@@ -35,7 +35,7 @@
     },
     "dependencies": {
         "@nuxt-alt/http": "latest",
-        "@nuxt/kit": "^3.1.1",
+        "@nuxt/kit": "^3.2.2",
         "@pinia/nuxt": "latest",
         "body-parser": "latest",
         "cookie-es": "latest",
@@ -46,10 +46,10 @@
         "requrl": "latest"
     },
     "devDependencies": {
-        "@nuxt/schema": "^3.1.1",
+        "@nuxt/schema": "^3.2.2",
         "@types/node": "^18.11.18",
         "fdir": "latest",
-        "nuxt": "^3.1.1",
+        "nuxt": "^3.2.2",
         "unbuild": "latest"
     },
     "repository": {

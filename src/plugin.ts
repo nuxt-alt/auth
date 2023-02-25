@@ -20,7 +20,7 @@ export const getAuthPlugin = (options: {
     strategyScheme: Record<string, ImportOptions>
 }): string => {
     return `import { Auth, ExpiredAuthSessionError } from '#auth/runtime'
-import { defineNuxtPlugin } from '#imports'
+import { defineNuxtPlugin, useRuntimeConfig } from '#imports'
 import { defu } from 'defu';
 
 // Active schemes

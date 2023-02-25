@@ -119,7 +119,7 @@ export default defineEventHandler(async (event) => {
             if (err) {
                 reject(err)
             } else {
-                resolve()
+                resolve(event)
             }
         }
 
@@ -216,7 +216,7 @@ export default defineEventHandler(async (event) => {
             if (err) {
                 reject(err)
             } else {
-                resolve()
+                resolve(event)
             }
         }
 

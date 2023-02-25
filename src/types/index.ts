@@ -24,7 +24,7 @@ declare module '@nuxt/schema' {
         auth?: Partial<ModuleOptions>;
     }
     export interface NuxtOptions {
-        auth?: Partial<ModuleOptions>;
+        auth?: ModuleOptions;
     }
     export interface RuntimeConfig {
         auth?: Partial<ModuleOptions>
@@ -34,6 +34,6 @@ declare module '@nuxt/schema' {
     }
 }
 
-declare const NuxtAuth: NuxtSchema.NuxtModule<Partial<ModuleOptions>>
+declare const NuxtAuth: NuxtSchema.NuxtModule<ModuleOptions>
 
 export default NuxtAuth
