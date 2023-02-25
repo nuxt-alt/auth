@@ -1,3 +1,4 @@
+import { useRuntimeConfig } from '#imports'
 import { ImportOptions } from './resolve'
 import { ModuleOptions, Strategy } from './types'
 
