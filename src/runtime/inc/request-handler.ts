@@ -93,8 +93,9 @@ export class RequestHandler {
 
     #needToken(config: FetchConfig): boolean {
         const options = this.scheme.options;
+        const hasAuthHeader = this.#requestHasAuthorizationHeader(config)
 
-        return (options.token!.global || Object.values(options.endpoints!).some((endpoint) => typeof endpoint === 'object' ? endpoint.url === config.url : endpoint === config.url));
+        return !hasAuthHeader && (options.token!.global || Object.values(options.endpoints!).some((endpoint) => typeof endpoint === 'object' ? endpoint.url === config.url : endpoint === config.url));
     }
 
     // ---------------------------------------------------------------
