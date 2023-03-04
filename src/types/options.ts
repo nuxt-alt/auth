@@ -33,6 +33,7 @@ export interface ModuleOptions {
             maxAge?: number;
             domain?: string;
             secure?: boolean;
+            sameSite?: 'strict' | 'lax' | 'none';
         };
     } | false;
     localStorage: { prefix: string; } | false;
