@@ -3,7 +3,7 @@ import type { NuxtApp } from '#app';
 import { isSet, getProp, routeMeta, isRelativeURL } from '../../utils';
 import { useRouter, useRoute } from '#imports';
 import { Storage } from './storage';
-import { isSamePath } from 'ufo'
+import { isSamePath, withQuery } from 'ufo';
 import requrl from 'requrl';
 
 export type ErrorListener = (...args: any[]) => void;
@@ -405,11 +405,9 @@ export class Auth {
         if (isSamePath(to, from)) {
             return;
         }
-        const query = activeRoute.query;
-        const queryString = Object.keys(query).map((key) => key + '=' + query[key]).join('&');
 
         if (this.options.redirectStrategy === 'storage') {
-            to += (queryString ? '?' + queryString : '');
+            to = withQuery(to, activeRoute.query);
         }
 
         if (!router || !isRelativeURL(to)) {
