@@ -1,9 +1,9 @@
 import type { RefreshableScheme, SchemePartialOptions, SchemeCheck, RefreshableSchemeOptions, UserOptions, SchemeOptions, HTTPResponse, EndpointsOption, TokenableSchemeOptions } from '../../types';
 import type { IncomingMessage } from 'http'
 import type { Auth } from '../core';
-import { getProp, normalizePath, randomString, removeTokenPrefix } from '../../utils';
+import { getProp, normalizePath, randomString, removeTokenPrefix, parseQuery } from '../../utils';
 import { RefreshController, RequestHandler, ExpiredAuthSessionError, Token, RefreshToken } from '../inc';
-import { joinURL, getQuery, withQuery } from 'ufo'
+import { joinURL, withQuery } from 'ufo'
 import { BaseScheme } from './base';
 import { useRoute, useRuntimeConfig } from '#imports';
 import requrl from 'requrl';
@@ -355,7 +355,7 @@ export class Oauth2Scheme<OptionsT extends Oauth2SchemeOptions = Oauth2SchemeOpt
             return;
         }
 
-        const hash = getQuery(route.hash.slice(1));
+        const hash = parseQuery(route.hash.slice(1));
         const parsedQuery = Object.assign({}, route.query, hash);
         // accessToken/idToken
         let token: string = parsedQuery[this.options.token!.property] as string;
@@ -374,7 +374,7 @@ export class Oauth2Scheme<OptionsT extends Oauth2SchemeOptions = Oauth2SchemeOpt
         }
 
         // -- Authorization Code Grant --
-        if (this.options.responseType === 'code' && parsedQuery.code) {
+        if (this.options.responseType.includes('code') && parsedQuery.code) {
             let codeVerifier;
 
             // Retrieve code verifier and remove it from storage
