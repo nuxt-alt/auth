@@ -168,13 +168,6 @@ export default defineEventHandler(async (event) => {
                 'Content-Type': 'application/json'
             }
 
-            if (options.strategy.clientSecretTransport === 'authorization_header') {
-                // @ts-ignore
-                headers.Authorization = 'Basic ' + Buffer.from(options.clientID + ':' + options.clientSecret).toString('base64')
-                // client_secret is transported in auth header
-                delete data.client_secret
-            }
-
             if (options.useForms) {
                 data = qs.stringify(data)
                 headers['Content-Type'] = 'application/x-www-form-urlencoded'

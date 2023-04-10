@@ -460,7 +460,7 @@ export class Oauth2Scheme<OptionsT extends Oauth2SchemeOptions = Oauth2SchemeOpt
             },
             body: new URLSearchParams({
                 refresh_token: removeTokenPrefix(refreshToken, this.options.token!.type) as string,
-                scopes: this.scope,
+                scope: this.scope,
                 client_id: this.options.clientId as string,
                 grant_type: 'refresh_token',
             }),

@@ -37,6 +37,7 @@ export class RefreshScheme<OptionsT extends RefreshSchemeOptions = RefreshScheme
 {
     refreshToken: RefreshToken;
     refreshController: RefreshController;
+    refreshRequest: Promise<HTTPResponse> | null = null
 
     constructor($auth: Auth, options: SchemePartialOptions<RefreshSchemeOptions>) {
         super($auth, options, DEFAULTS);
@@ -161,16 +162,22 @@ export class RefreshScheme<OptionsT extends RefreshSchemeOptions = RefreshScheme
 
         cleanObj(endpoint.body);
 
-        // Make refresh request
-        try {
-            const response = await this.$auth.request(endpoint, this.options.endpoints.refresh);
-            // Update tokens
-            this.updateTokens(response, { isRefreshing: true });
-            return await response;
-        } catch (error: any) {
-            this.$auth.callOnError(error, { method: 'refreshToken' });
-            return await Promise.reject(error);
-        }
+        this.refreshRequest = this.refreshRequest || this.$auth.request(endpoint, this.options.endpoints.refresh) as Promise<HTTPResponse>
+  
+        return this.refreshRequest
+            .then((response) => {
+                // Update tokens
+                this.updateTokens(response, { isRefreshing: true })
+                return response
+            })
+            .catch((error) => {
+                this.$auth.callOnError(error, { method: 'refreshToken' })
+                return Promise.reject(error)
+            })
+            .finally(() => {
+                // Reset the refresh request
+                this.refreshRequest = null
+            })
     }
 
     setUserToken(token: string | boolean, refreshToken?: string | boolean): Promise<HTTPResponse | void> {
