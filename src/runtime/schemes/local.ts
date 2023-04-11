@@ -128,19 +128,21 @@ export class LocalScheme<OptionsT extends LocalSchemeOptions = LocalSchemeOption
             this.$auth.reset({ resetInterceptor: false });
         }
 
+        endpoint.body = endpoint.body || {};
+
         // Add client id to payload if defined
         if (this.options.clientId) {
-            endpoint.body!['client_id' as keyof BodyInit] = this.options.clientId as keyof BodyInit;
+            endpoint.body.client_id = this.options.clientId;
         }
 
         // Add grant type to payload if defined
         if (this.options.grantType) {
-            endpoint.body!['grant_type' as keyof BodyInit] = this.options.grantType as keyof BodyInit;
+            endpoint.body.grant_type = this.options.grantType;
         }
 
         // Add scope to payload if defined
         if (this.options.scope) {
-            endpoint.body!['scope' as keyof BodyInit] = this.options.scope as keyof BodyInit;
+            endpoint.body.scope = this.options.scope;
         }
 
         // Make login request
