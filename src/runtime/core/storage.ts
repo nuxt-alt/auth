@@ -15,7 +15,10 @@ export class Storage {
 
     constructor(ctx: NuxtApp, options: ModuleOptions) {
         this.ctx = ctx;
-        this.options = options;
+        this.options = {
+            ...options,
+            ...(this.ctx.$config && this.ctx.$config.auth)
+        };
         this.#piniaEnabled = false;
 
         this.#initState();
