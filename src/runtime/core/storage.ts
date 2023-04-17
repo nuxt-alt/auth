@@ -1,8 +1,9 @@
 import type { ModuleOptions } from '../../types';
-import type { NuxtApp } from '#app'
+import type { NuxtApp } from '#app';
 import { isUnset, isSet, decodeValue, encodeValue } from '../../utils';
-import { parse, serialize, CookieSerializeOptions } from 'cookie-es';
 import { defineStore, StateTree } from 'pinia';
+import { setCookie, getCookie } from 'h3';
+import { useCookie } from '#imports';
 
 export class Storage {
     ctx: NuxtApp;
@@ -111,20 +112,18 @@ export class Storage {
         this.#state = {};
 
         // Use pinia for local state's if possible
-        // @ts-ignore
         this.#piniaEnabled = this.options.pinia && !!this.ctx.$pinia;
 
         if (this.#piniaEnabled) {
             this.#store = defineStore(this.options.pinia.namespace, {
                 state: () => this.options.initialState as StateTree,
                 actions: {
-                    SET(payload: any) {
+                    SET (payload: any) {
                         this.$patch({ [payload.key]: payload.value });
                     },
                 },
             });
 
-            // @ts-ignore
             this.#initStore = this.#store(this.ctx.$pinia);
             this.state = this.#initStore.$state;
         } else {
@@ -353,25 +352,7 @@ export class Storage {
     // Cookies
     // ------------------------------------
 
-    getCookies(): Record<string, any> | void {
-        if (!this.isCookiesEnabled()) {
-            return;
-        }
-
-        const cookieStr = process.client ? document.cookie : this.ctx.ssrContext!.event.node.req.headers.cookie;
-
-        return parse(cookieStr || '') || {};
-    }
-
-    setCookie<V extends any>(key: string, value: V, options: { prefix?: string } = {}) {
-        if (!this.options.cookie) {
-            return;
-        }
-
-        if ((process.server && !this.ctx.ssrContext!.event.node.res)) {
-            return;
-        }
-
+    setCookie<V extends any>(key: string, value: V, options: ModuleOptions['cookie'] = {}) {
         if (!this.isCookiesEnabled()) {
             return;
         }
@@ -391,51 +372,30 @@ export class Storage {
             $options.expires = new Date(Date.now() + $options.expires * 864e5);
         }
 
-        const serializedCookie = serialize($key, $value, $options as CookieSerializeOptions);
-
         if (process.client) {
-            // Set in browser
-            document.cookie = serializedCookie;
-        } 
+            const clientCookie = useCookie($key, $options)
+            clientCookie.value = $value;
+        }
         else if (process.server && this.ctx.ssrContext!.event.node.res) {
-            // Send Set-Cookie header from server side
-            let cookies = (this.ctx.ssrContext!.event.node.res.getHeader('Set-Cookie') as string[]) || [];
-            if (!Array.isArray(cookies)) cookies = [cookies];
-            cookies.unshift(serializedCookie);
-
-            this.ctx.ssrContext!.event.node.res.setHeader('Set-Cookie', cookies.filter(
-                (v, i, arr) => arr.findIndex( 
-                    (val) => val.startsWith(v.slice(0, v.indexOf('='))) 
-                ) === i
-            ));
+            setCookie(this.ctx.ssrContext!.event, $key, $value, $options);
         }
 
         return value;
     }
 
-    getCookie(key: string): any {
-        if (!this.options.cookie) {
-            return;
-        }
-
-        if ((process.server && !this.ctx.ssrContext!.event.node.req)) {
-            return;
-        }
-
+    getCookie(key: string): string | null | undefined {
         if (!this.isCookiesEnabled()) {
             return;
         }
 
-        const $key = this.options.cookie.prefix + key;
-
-        const cookies = this.getCookies();
-
-        const value = cookies![$key] ? decodeURIComponent(cookies![$key] as string) : undefined;
-
-        return decodeValue(value);
+        if (process.server) {
+            return getCookie(this.ctx.ssrContext!.event, key);
+        } else {
+            return useCookie(key).value
+        }
     }
 
-    removeCookie(key: string, options?: { prefix?: string }): void {
+    removeCookie(key: string, options?: ModuleOptions['cookie']): void {
         this.setCookie(key, undefined, options);
     }
 

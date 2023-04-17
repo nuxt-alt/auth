@@ -26,16 +26,16 @@ export interface ModuleOptions {
         namespace: string;
     };
     cookie: {
-        prefix: string;
-        options: {
-            path: string;
-            expires?: number | Date;
+        prefix?: string;
+        options?: {
+            path?: string;
+            expires?: Date;
             maxAge?: number;
             domain?: string;
             secure?: boolean;
             sameSite?: 'strict' | 'lax' | 'none';
         };
-    } | false;
+    };
     localStorage: { prefix: string; } | false;
     sessionStorage: { prefix: string; } | false;
     initialState?: {

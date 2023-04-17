@@ -82,10 +82,8 @@ export class CookieScheme<OptionsT extends CookieSchemeOptions> extends BaseSche
         const response = { valid: false };
 
         if (this.options.cookie.name) {
-            const cookies = this.$auth.$storage.getCookies();
-
             if (this.isServerCookie() || this.isClientCookie()) {
-                response.valid = Boolean(cookies![this.options.cookie.name]);
+                response.valid = Boolean(this.$auth.$storage.getCookie(this.options.cookie.name));
             } else {
                 response.valid = true;
             }

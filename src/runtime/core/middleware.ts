@@ -27,11 +27,6 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
         // Perform scheme checks.
         const { tokenExpired, refreshTokenExpired, isRefreshable } = ctx.$auth.check(true);
 
-        // -- Authorized --
-        if (!login || insidePage(login) || pageIsInGuestMode) {
-            ctx.$auth.redirect('home', to);
-        }
-
         // Refresh token has expired. There is no way to refresh. Force reset.
         if (refreshTokenExpired) {
             ctx.$auth.reset();
@@ -50,12 +45,17 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
                 ctx.$auth.reset();
             }
         }
+
+        // -- Authorized --
+        if (!login || insidePage(login) || pageIsInGuestMode) {
+            return ctx.$auth.redirect('home', to);
+        }
     }
 
     // -- Guest --
     // (Those passing `callback` at runtime need to mark their callback component
     // with `auth: false` to avoid an unnecessary redirect from callback to login)
     else if (!pageIsInGuestMode && (!callback || !insidePage(callback))) {
-        ctx.$auth.redirect('login', to);
+        return ctx.$auth.redirect('login', to);
     }
 });

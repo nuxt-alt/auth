@@ -1,7 +1,7 @@
 import type { HTTPRequest, HTTPResponse, Scheme, SchemeCheck, TokenableScheme, RefreshableScheme, ModuleOptions, Route } from '../../types';
 import type { NuxtApp } from '#app';
 import { isSet, getProp, routeMeta, isRelativeURL } from '../../utils';
-import { useRouter, useRoute } from '#imports';
+import { useRoute, navigateTo } from "#imports";
 import { Storage } from './storage';
 import { isSamePath, withQuery } from 'ufo';
 import requrl from 'requrl';
@@ -354,8 +354,7 @@ export class Auth {
      *
      * @returns
      */
-    redirect(name: string, route: Route | false = false, router: boolean = true): void {
-        const activeRouter = useRouter();
+    redirect(name: string, route: Route | false = false, router: boolean = true) {
         const activeRoute = useRoute();
 
         if (!this.options.redirect) {
@@ -413,7 +412,7 @@ export class Auth {
         if (!router || !isRelativeURL(to)) {
             window.location.replace(to);
         } else {
-            activeRouter.push(to);
+            return navigateTo(to);
         }
     }
 
