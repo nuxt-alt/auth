@@ -1,5 +1,6 @@
 import type { Strategy } from './strategy';
 import type { NuxtPlugin } from '@nuxt/schema'
+import type { PersistedStateOptions } from 'pinia-plugin-persistedstate';
 
 export interface ModuleOptions {
     globalMiddleware?: boolean;
@@ -24,12 +25,14 @@ export interface ModuleOptions {
     };
     pinia: {
         namespace: string;
+        persist?: boolean | PersistedStateOptions | PersistedStateOptions[];
+        persistType?: 'plugin' | 'nuxt';
     };
     cookie: {
         prefix?: string;
         options?: {
             path?: string;
-            expires?: Date;
+            expires?: Date | number;
             maxAge?: number;
             domain?: string;
             secure?: boolean;

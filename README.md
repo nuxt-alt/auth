@@ -61,6 +61,20 @@ Enables/disables the built-in middleware.
 
 Changed from vuex to pinia, this is the namespace to use for the pinia store.
 
+### `pinia.persist`
+
+- Type: `boolean | PersistedStateOptions | PersistedStateOptions[];`
+- Default: `false`
+
+Persist options to use for the `pinia-plugin-persistedstate` plugin.
+
+### `pinia.persistType`
+
+- Type: `undefined | plugin | nuxt`
+- Default: `undefined`
+
+The `pinia-plugin-persistedstate` has a nuxt module readily avalable to use, if you are not using the nuxt module set this options to 'plugin'
+
 ### `sessionStorage`
 
 - Type: `String | False`
@@ -115,6 +129,10 @@ auth: {
     }
 }
 ```
+
+## Pinia Persist (Experimental)
+
+Ive added compatibility with the `pinia-plugin-persistedstate` plguin. please takea look at that plugin's documentation for nuxt and/or plugin usage. I'm still experimenting with it so there may be bugs with it's usage. Documentation has been provided on the options available to you if you decide to use this.
 
 ## Oauth2
 

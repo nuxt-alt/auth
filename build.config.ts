@@ -13,7 +13,8 @@ export default defineBuildConfig({
     stub: args.stub,
     entries: [
         'src/module',
-        { input: 'src/types/', outDir: 'dist/types', ext: 'mjs' },
+        // @ts-ignore
+        { input: 'src/types/', outDir: 'dist/types', ext: 'd.ts' },
         { input: 'src/runtime/', outDir: 'dist/runtime', ext: 'mjs' },
         { input: 'src/utils/', outDir: 'dist/utils', ext: 'mjs' },
         { input: 'src/providers/', outDir: 'dist/providers', ext: 'mjs' },
@@ -34,16 +35,7 @@ export default defineBuildConfig({
         'vue-demi'
     ],
     hooks: {
-        async 'rollup:dts:build'(ctx) {
-            const api = new fdir().withFullPaths().glob('./**/*.mjs').crawl(ctx.options.outDir + '/types').withPromise();
 
-            api.then((files) => {
-                // @ts-ignore
-                files.forEach(async (file: any) => {
-                    await fsp.unlink(file)
-                });
-            });
-        },
         async 'rollup:done'(ctx) {
             // Generate CommonJS stup
             await writeCJSStub(ctx.options.outDir)

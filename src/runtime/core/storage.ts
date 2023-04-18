@@ -1,7 +1,8 @@
 import type { ModuleOptions } from '../../types';
 import type { NuxtApp } from '#app';
 import { isUnset, isSet, decodeValue, encodeValue } from '../../utils';
-import { defineStore, StateTree } from 'pinia';
+import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
+import { defineStore, type Pinia, type Store } from 'pinia';
 import { setCookie, getCookie } from 'h3';
 import { useCookie } from '#imports';
 
@@ -112,19 +113,25 @@ export class Storage {
         this.#state = {};
 
         // Use pinia for local state's if possible
-        this.#piniaEnabled = this.options.pinia && !!this.ctx.$pinia;
+        const pinia = this.ctx.$pinia as Pinia
+        this.#piniaEnabled = this.options.pinia && !!pinia;
 
         if (this.#piniaEnabled) {
+            if (this.options.pinia.persistType === 'plugin') {
+                pinia.use(piniaPluginPersistedstate)
+            }
+
             this.#store = defineStore(this.options.pinia.namespace, {
-                state: () => this.options.initialState as StateTree,
+                state: () => ({ ...this.options.initialState }),
                 actions: {
                     SET (payload: any) {
                         this.$patch({ [payload.key]: payload.value });
                     },
                 },
+                persist: this.options.pinia.persist
             });
 
-            this.#initStore = this.#store(this.ctx.$pinia);
+            this.#initStore = this.#store(pinia);
             this.state = this.#initStore.$state;
         } else {
             this.state = {};
@@ -134,11 +141,11 @@ export class Storage {
     }
 
     get store() {
-        return this.#initStore
+        return this.#initStore as Store;
     }
 
     getStore() {
-        return this.#initStore;
+        return this.#initStore as Store;
     }
 
     setState<V extends any>(key: string, value: V): V {
@@ -352,7 +359,7 @@ export class Storage {
     // Cookies
     // ------------------------------------
 
-    setCookie<V extends any>(key: string, value: V, options: ModuleOptions['cookie'] = {}) {
+    setCookie<V extends any>(key: string, value: V, options: ModuleOptions['cookie'] & { expires?: Date } = {}) {
         if (!this.isCookiesEnabled()) {
             return;
         }
