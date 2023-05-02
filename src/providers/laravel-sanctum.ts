@@ -15,7 +15,6 @@ export function laravelSanctum(nuxt: Nuxt, strategy: ProviderPartialOptions<Lara
         name: 'laravelSanctum',
         cookie: {
             name: 'XSRF-TOKEN',
-            server: nuxt.options.ssr
         },
         endpoints: {
             csrf: {
@@ -36,10 +35,7 @@ export function laravelSanctum(nuxt: Nuxt, strategy: ProviderPartialOptions<Lara
             },
         },
         user: {
-            property: {
-                server: false,
-                client: false
-            },
+            property: false,
             autoFetch: true,
         }
     };

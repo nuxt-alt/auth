@@ -93,7 +93,6 @@ export class RequestHandler {
 
     #needToken(config: FetchConfig): boolean {
         const options = this.scheme.options;
-        // @ts-ignore: fix at a later date
         return (options.token!.global || Object.values(options.endpoints!).some((endpoint) => typeof endpoint === 'object' ? endpoint!.url === config.url : endpoint === config.url));
     }
 

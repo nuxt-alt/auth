@@ -16,6 +16,7 @@ export interface ModuleOptions {
     rewriteRedirects: boolean;
     fullPathRedirect: boolean;
     redirectStrategy?: string;
+    routerStrategy?: string;
     scopeKey: string;
     redirect: {
         login: string;

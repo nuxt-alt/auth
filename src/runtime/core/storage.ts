@@ -1,10 +1,9 @@
 import type { ModuleOptions } from '../../types';
 import type { NuxtApp } from '#app';
-import { isUnset, isSet, decodeValue, encodeValue } from '../../utils';
-import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
+import { isUnset, isSet, decodeValue, encodeValue, setH3Cookie } from '../../utils';
+import piniaPluginPersistedstate from 'pinia-plugin-persistedstate';
 import { defineStore, type Pinia, type Store } from 'pinia';
-import { setCookie, getCookie } from 'h3';
-import { useCookie } from '#imports';
+import { parse, serialize } from 'cookie-es';
 
 export class Storage {
     ctx: NuxtApp;
@@ -379,15 +378,24 @@ export class Storage {
             $options.expires = new Date(Date.now() + $options.expires * 864e5);
         }
 
+        const serializedCookie = serialize($key, $value, $options);
+
         if (process.client) {
-            const clientCookie = useCookie($key, $options)
-            clientCookie.value = $value;
+            document.cookie = serializedCookie;
         }
         else if (process.server && this.ctx.ssrContext!.event.node.res) {
-            setCookie(this.ctx.ssrContext!.event, $key, $value, $options);
+            setH3Cookie(this.ctx.ssrContext!.event, serializedCookie)
+        }
+    }
+
+    getCookies(): Record<string, any> | void {
+        if (!this.isCookiesEnabled()) {
+            return;
         }
 
-        return value;
+        const cookieStr = process.client ? document.cookie : this.ctx.ssrContext!.event.node.req.headers.cookie;
+
+        return parse(cookieStr as string || '') || {}
     }
 
     getCookie(key: string): string | null | undefined {
@@ -395,11 +403,10 @@ export class Storage {
             return;
         }
 
-        if (process.server) {
-            return getCookie(this.ctx.ssrContext!.event, key);
-        } else {
-            return useCookie(key).value
-        }
+        const $key = this.options.cookie.prefix + key;
+        const cookies = this.getCookies();
+
+        return decodeValue(cookies![$key] ? decodeURIComponent(cookies![$key] as string) : undefined)
     }
 
     removeCookie(key: string, options?: ModuleOptions['cookie']): void {

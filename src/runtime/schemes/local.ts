@@ -101,11 +101,10 @@ export class LocalScheme<OptionsT extends LocalSchemeOptions = LocalSchemeOption
         return response;
     }
 
-    mounted({ tokenCallback = () => this.$auth.reset(), refreshTokenCallback = undefined } = {}): Promise<HTTPResponse | void> {
+    mounted({ tokenCallback = () => this.$auth.reset(), refreshTokenCallback = () => undefined } = {}): Promise<HTTPResponse | void> {
         const { tokenExpired, refreshTokenExpired } = this.check(true);
 
         if (refreshTokenExpired && typeof refreshTokenCallback === 'function') {
-            //@ts-ignore
             refreshTokenCallback();
         } else if (tokenExpired && typeof tokenCallback === 'function') {
             tokenCallback();

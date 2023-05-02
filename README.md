@@ -82,6 +82,13 @@ The `pinia-plugin-persistedstate` has a nuxt module readily avalable to use, if 
 
 Similar to the localstorage option, there is a session storage options available for you to use.
 
+### `routerStrategy`
+
+- Type: `router | navigateTo`
+- Default: `router`
+
+By default it will use `router` (`navigateTo` has an issue; I'm assuming with SSR that I don't have the time to check into at the moment, but I'll eventually want to replace with at some point.)
+
 ### `redirectStrategy`
 
 - Type: `query | storage`
@@ -95,40 +102,13 @@ In addition to [Auth Tokens](https://auth.nuxtjs.org/api/tokens);
 
 By default the `$auth.strategy` getter uses the `Scheme` type which does not have `token` or `refreshToken` property types. To help with this, a `$auth.refreshStrategy` and a `$auth.tokenStrategy` getter have been added for typing. They all do the same thing, this is just meant for type hinting.
 
-## Cookie-based auth
+## Cookie-based auth (Update: 2.5.0+)
 
 The cookie scheme has been decoupled from the local scheme as it does not utitlize tokens, rather it it uses cookies.
 
-There is a new `cookie.server` property, this indicates that the cookie we will be looking for will be set upon login otherwise we will be looking at a client/browser cookie. There has also been 2 user properties one for the client/browser and one for the server. An example config looks like this:
+~~There is a new `cookie.server` property, this indicates that the cookie we will be looking for will be set upon login otherwise we will be looking at a client/browser cookie. There has also been 2 user properties one for the client/browser and one for the server. An example config looks like this:~~
 
-```ts
-auth: {
-    strategies: {
-        localStorage: false,
-        cookie: {
-            cookie: {
-                server: true
-            },
-            endpoints: {
-                login: { 
-                    url: '/api/user/login', 
-                    method: 'post' 
-                },
-                user: { 
-                    url: '/api/user/me', 
-                    method: 'get' 
-                }
-            },
-            user: {
-                property: {
-                    client: false,
-                    server: false
-                }
-            }
-        },
-    }
-}
-```
+The `cookie.server` param has been removed. This was meant as a workaround to decouple the server and client user request when logging in because the check was being overriden. This should be fixed in 2.5.0. The `user.property` param no longer needs to be separated by server and client so use `user.property` instead of `user.property.server` and `user.property.client`.
 
 ## Pinia Persist (Experimental)
 

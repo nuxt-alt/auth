@@ -1,7 +1,7 @@
 import type { HTTPRequest, HTTPResponse, Scheme, SchemeCheck, TokenableScheme, RefreshableScheme, ModuleOptions, Route } from '../../types';
 import type { NuxtApp } from '#app';
 import { isSet, getProp, routeMeta, isRelativeURL } from '../../utils';
-import { useRoute, navigateTo } from "#imports";
+import { navigateTo, useRoute, useRouter } from "#imports";
 import { Storage } from './storage';
 import { isSamePath, withQuery } from 'ufo';
 import requrl from 'requrl';
@@ -283,8 +283,7 @@ export class Auth {
         const request = typeof defaults === 'object' ? Object.assign({}, defaults, endpoint) : endpoint;
 
         if (request.baseURL === '') {
-            // @ts-ignore
-            request.baseURL = requrl(process.server ? this.ctx.ssrContext?.event.req : undefined);
+            request.baseURL = requrl(process.server ? this.ctx.ssrContext!.event.node.req : undefined);
         }
 
         if (!this.ctx.$http) {
@@ -355,13 +354,14 @@ export class Auth {
      * @returns
      */
     redirect(name: string, route: Route | false = false, router: boolean = true) {
-        const activeRoute = useRoute();
+        const currentRoute = useRoute();
+        const currentRouter = useRouter();
 
         if (!this.options.redirect) {
             return;
         }
 
-        const nuxtRoute = this.options.fullPathRedirect ? activeRoute.fullPath : activeRoute.path
+        const nuxtRoute = this.options.fullPathRedirect ? currentRoute.fullPath : currentRoute.path
         const from = route ? (this.options.fullPathRedirect ? route.fullPath : route.path) : nuxtRoute;
 
         let to: string = this.options.redirect[name as keyof typeof this.options.redirect];
@@ -370,7 +370,7 @@ export class Auth {
             return;
         }
 
-        const queryReturnTo = activeRoute.query.to;
+        const queryReturnTo = currentRoute.query.to;
 
         // Apply rewrites
         if (this.options.rewriteRedirects) {
@@ -384,7 +384,7 @@ export class Auth {
             }
 
             if (name === 'home') {
-                let redirect = activeRoute.query.to ? decodeURIComponent(activeRoute.query.to as string) : undefined;
+                let redirect = currentRoute.query.to ? decodeURIComponent(currentRoute.query.to as string) : undefined;
 
                 if (this.options.redirectStrategy === 'storage') {
                     redirect = this.$storage.getUniversal('redirect') as string;
@@ -406,13 +406,14 @@ export class Auth {
         }
 
         if (this.options.redirectStrategy === 'storage') {
-            to = withQuery(to, activeRoute.query);
+            to = withQuery(to, currentRoute.query);
         }
 
         if (!router || !isRelativeURL(to)) {
             window.location.replace(to);
-        } else {
-            return navigateTo(to);
+        }
+        else {
+            return this.options.routerStrategy === 'navigateTo' ? navigateTo(to) : currentRouter.push(to);
         }
     }
 

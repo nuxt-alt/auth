@@ -9,10 +9,7 @@ export interface UserOptions {
 }
 
 export interface CookieUserOptions {
-    property: {
-        client: string | false;
-        server: string | false;
-    };
+    property: string | false;
     autoFetch: boolean;
 }
 

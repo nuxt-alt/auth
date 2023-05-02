@@ -3,7 +3,6 @@ import { existsSync, promises as fsp } from 'node:fs'
 import { defineBuildConfig } from 'unbuild'
 import { pathToFileURL } from 'url'
 import { resolve } from 'path'
-import { fdir } from 'fdir'
 import mri from 'mri'
 
 const args = mri(process.argv.slice(2))

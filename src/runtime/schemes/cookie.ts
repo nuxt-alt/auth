@@ -13,7 +13,6 @@ export interface CookieSchemeEndpoints extends EndpointsOption {
 
 export interface CookieSchemeCookie {
     name: string;
-    server: boolean;
 }
 
 export interface CookieSchemeOptions {
@@ -27,8 +26,7 @@ export interface CookieSchemeOptions {
 const DEFAULTS: SchemePartialOptions<CookieSchemeOptions> = {
     name: 'cookie',
     cookie: {
-        name: undefined,
-        server: false,
+        name: undefined
     },
     endpoints: {
         csrf: false,
@@ -46,16 +44,14 @@ const DEFAULTS: SchemePartialOptions<CookieSchemeOptions> = {
         },
     },
     user: {
-        property: {
-            client: false,
-            server: false,
-        },
+        property: false,
         autoFetch: true,
     },
 };
 
 export class CookieScheme<OptionsT extends CookieSchemeOptions> extends BaseScheme<OptionsT> {
     requestHandler: RequestHandler;
+    checkStatus: boolean = false;
 
     constructor($auth: Auth, options: SchemePartialOptions<CookieSchemeOptions>, ...defaults: SchemePartialOptions<CookieSchemeOptions>[]) {
         super($auth, options as OptionsT, ...(defaults as OptionsT[]), DEFAULTS as OptionsT);
@@ -69,24 +65,25 @@ export class CookieScheme<OptionsT extends CookieSchemeOptions> extends BaseSche
             this.$auth.ctx.$http.setHeader('referer', this.$auth.ctx.ssrContext!.event.node.req.headers.host!);
         }
 
+        this.checkStatus = true;
+
         // Initialize request interceptor
         this.initializeRequestInterceptor();
 
-        if (this.isServerCookie() || this.isClientCookie()) {
-            // Fetch user once
-            return this.$auth.fetchUserOnce();
-        }
+        return this.$auth.fetchUserOnce();
     }
 
-    check(): SchemeCheck {
+    check(checkStatus = false): SchemeCheck {
         const response = { valid: false };
 
+        if (!checkStatus) {
+            response.valid = true
+            return response
+        }
+
         if (this.options.cookie.name) {
-            if (this.isServerCookie() || this.isClientCookie()) {
-                response.valid = Boolean(this.$auth.$storage.getCookie(this.options.cookie.name));
-            } else {
-                response.valid = true;
-            }
+            const cookies = this.$auth.$storage.getCookies();
+            response.valid = Boolean(cookies![this.options.cookie.name]);
 
             return response;
         }
@@ -118,6 +115,10 @@ export class CookieScheme<OptionsT extends CookieSchemeOptions> extends BaseSche
 
         // Fetch user if `autoFetch` is enabled
         if (this.options.user.autoFetch) {
+            if (this.checkStatus) {
+                this.checkStatus = false;
+            }
+
             await this.fetchUser();
         }
 
@@ -125,10 +126,8 @@ export class CookieScheme<OptionsT extends CookieSchemeOptions> extends BaseSche
     }
 
     async fetchUser(endpoint?: HTTPRequest): Promise<HTTPResponse | void> {
-        if (this.isServerCookie() || this.isClientCookie()) {
-            if (!this.check().valid) {
-                return Promise.resolve();
-            }
+        if (!this.check(this.checkStatus ? true : false).valid) {
+            return Promise.resolve();
         }
 
         // User endpoint is disabled
@@ -137,18 +136,13 @@ export class CookieScheme<OptionsT extends CookieSchemeOptions> extends BaseSche
             return Promise.resolve();
         }
 
+        this.checkStatus = false;
+
         // Try to fetch user and then set
         return this.$auth
             .requestWith(endpoint, this.options.endpoints.user)
             .then((response) => {
-                let userData: any;
-
-                if (process.client) {
-                    userData = getProp(response, this.options.user.property.client);
-                }
-                else {
-                    userData = getProp(response, this.options.user.property.server);
-                }
+                const userData = getProp(response, this.options.user.property)
 
                 if (!userData) {
                     const error = new Error(`User Data response does not contain field ${this.options.user.property}`);
@@ -189,14 +183,6 @@ export class CookieScheme<OptionsT extends CookieSchemeOptions> extends BaseSche
         if (resetInterceptor) {
             this.requestHandler.reset();
         }
-    }
-
-    isServerCookie(): boolean {
-        return this.options.cookie.server && process.server;
-    }
-
-    isClientCookie(): boolean {
-        return !this.options.cookie.server && process.client;
     }
 
     initializeRequestInterceptor(): void {

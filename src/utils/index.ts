@@ -1,5 +1,6 @@
 import type { RouteComponent, RouteLocationNormalized } from 'vue-router';
 import type { RecursivePartial } from '../types';
+import type { H3Event } from 'h3';
 import { useRuntimeConfig } from '#imports';
 
 export const isUnset = (o: any): boolean => typeof o === 'undefined' || o === null;
@@ -139,4 +140,18 @@ export function randomString(length: number) {
     }
 
     return result;
+}
+
+export function setH3Cookie(event: H3Event, serializedCookie: string) {
+    // Send Set-Cookie header from server side
+    let cookies = (event.node.res.getHeader('Set-Cookie') as string[]) || [];
+
+    if (!Array.isArray(cookies)) cookies = [cookies];
+    cookies.unshift(serializedCookie);
+
+    event.node.res.setHeader('Set-Cookie', cookies.filter(
+        (value, index, items) => items.findIndex( 
+            (val) => val.startsWith(value.slice(0, value.indexOf('='))) 
+        ) === index
+    ));
 }
