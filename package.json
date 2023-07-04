@@ -1,6 +1,6 @@
 {
     "name": "@nuxt-alt/auth",
-    "version": "2.5.0",
+    "version": "2.5.1",
     "description": "An alternative module to @nuxtjs/auth",
     "homepage": "https://github.com/nuxt-alt/auth",
     "author": "Teranode",
@@ -35,7 +35,7 @@
     },
     "dependencies": {
         "@nuxt-alt/http": "latest",
-        "@nuxt/kit": "^3.4.3",
+        "@nuxt/kit": "^3.6.1",
         "@pinia/nuxt": "latest",
         "body-parser": "latest",
         "cookie-es": "latest",
@@ -47,9 +47,8 @@
         "requrl": "latest"
     },
     "devDependencies": {
-        "@nuxt/schema": "^3.4.3",
         "@types/node": "^18",
-        "nuxt": "^3.4.3",
+        "nuxt": "^3.6.1",
         "unbuild": "latest"
     },
     "repository": {

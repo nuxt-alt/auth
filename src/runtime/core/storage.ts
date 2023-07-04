@@ -375,7 +375,7 @@ export class Storage {
 
         // Accept expires as a number for js-cookie compatiblity
         if (typeof $options.expires === 'number') {
-            $options.expires = new Date(Date.now() + $options.expires * 864e5);
+            $options.expires = new Date(2147483647 * 1000);
         }
 
         const serializedCookie = serialize($key, $value, $options);

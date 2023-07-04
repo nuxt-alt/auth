@@ -1,8 +1,6 @@
 import type { Strategy, ModuleOptions } from './types';
 import type { Nuxt, NuxtModule } from '@nuxt/schema'
-import { resolvePath, installModule } from '@nuxt/kit';
-import { ProviderAliases } from './providers';
-import * as AUTH_PROVIDERS from './providers';
+import { resolvePath } from '@nuxt/kit';
 import { existsSync } from 'fs';
 import { hash } from 'ohash'
 
@@ -49,7 +47,8 @@ export async function resolveStrategies(nuxt: Nuxt, options: ModuleOptions): Pro
 
         delete strategy.provider;
 
-        if (typeof provider === 'function' && !(provider as NuxtModule).getOptions) {
+        // check that the provider isn't a nuxt module
+        if (typeof provider === 'function') {
             provider(nuxt, strategy);
         }
 
@@ -103,24 +102,13 @@ export async function resolveScheme(scheme: string): Promise<ImportOptions | voi
 }
 
 export async function resolveProvider(provider: string | ((...args: any[]) => any)) {
+    // return an empty function as it doesn't use a provider
+    if (typeof provider === 'string') {
+        return (nuxt, strategy) => {}
+    }
+
+    // return the provider
     if (typeof provider === 'function') {
         return provider;
-    }
-
-    if (typeof provider !== 'string') {
-        return;
-    }
-
-    provider = (ProviderAliases[provider as keyof typeof ProviderAliases] || provider);
-
-    if (AUTH_PROVIDERS[provider as keyof typeof AUTH_PROVIDERS]) {
-        return AUTH_PROVIDERS[provider as keyof typeof AUTH_PROVIDERS];
-    }
-
-    try {
-        const m = await installModule(provider);
-        return m;
-    } catch (e) {
-        return;
     }
 }
