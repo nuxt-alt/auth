@@ -41,6 +41,7 @@
         "cookie-es": "latest",
         "defu": "latest",
         "jwt-decode": "latest",
+        "object.hasown": "latest",
         "ohash": "latest",
         "pathe": "latest",
         "pinia-plugin-persistedstate": "latest",

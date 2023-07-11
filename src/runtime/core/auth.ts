@@ -5,6 +5,9 @@ import { navigateTo, useRoute, useRouter } from "#imports";
 import { Storage } from './storage';
 import { isSamePath, withQuery } from 'ufo';
 import requrl from 'requrl';
+import hasOwn from "object.hasown";
+
+const objectHasOwn = Object.hasOwn ?? hasOwn.shim; // adding shim in case < es2022
 
 export type ErrorListener = (...args: any[]) => void;
 export type RedirectListener = (to: string, from: string) => string;
@@ -117,7 +120,7 @@ export class Auth {
             if (process.client && this.options.watchLoggedIn) {
                 this.$storage.watchState('loggedIn', (loggedIn: boolean) => {
                     if (this.$state.loggedIn === loggedIn) return;
-                    if (Object.hasOwn(useRoute().meta, 'auth') && !routeMeta(useRoute(), 'auth', false)) {
+                    if (objectHasOwn(useRoute().meta, 'auth') && !routeMeta(useRoute(), 'auth', false)) {
                         this.redirect(loggedIn ? 'home' : 'logout');
                     }
                 });
