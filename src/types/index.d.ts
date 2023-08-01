@@ -19,21 +19,7 @@ declare module '#app' {
     }
 }
 
-declare module '@nuxt/schema' {
-    export interface NuxtConfig {
-        auth?: Partial<ModuleOptions>;
-    }
-    export interface NuxtOptions {
-        auth?: ModuleOptions;
-    }
-    export interface RuntimeConfig {
-        auth?: Partial<ModuleOptions>
-    }
-    interface PublicRuntimeConfig {
-        auth?: Partial<ModuleOptions>
-    }
-}
-
 declare const NuxtAuth: NuxtSchema.NuxtModule<ModuleOptions>
 
-export default NuxtAuth
+export { ModuleOptions, NuxtAuth as default };
+

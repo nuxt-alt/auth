@@ -1,5 +1,7 @@
 import type { Strategy, ModuleOptions } from './types';
-import type { Nuxt, NuxtModule } from '@nuxt/schema'
+import type { Nuxt } from '@nuxt/schema'
+import { ProviderAliases } from './providers';
+import * as AUTH_PROVIDERS from './providers';
 import { resolvePath } from '@nuxt/kit';
 import { existsSync } from 'fs';
 import { hash } from 'ohash'
@@ -102,13 +104,20 @@ export async function resolveScheme(scheme: string): Promise<ImportOptions | voi
 }
 
 export async function resolveProvider(provider: string | ((...args: any[]) => any)) {
-    // return an empty function as it doesn't use a provider
-    if (typeof provider === 'string') {
-        return (nuxt, strategy) => {}
+
+    provider = (ProviderAliases[provider as keyof typeof ProviderAliases] || provider);
+
+    if (AUTH_PROVIDERS[provider as keyof typeof AUTH_PROVIDERS]) {
+        return AUTH_PROVIDERS[provider as keyof typeof AUTH_PROVIDERS];
     }
 
     // return the provider
     if (typeof provider === 'function') {
         return provider;
+    }
+
+    // return an empty function as it doesn't use a provider
+    if (typeof provider === 'string') {
+        return (nuxt, strategy) => {}
     }
 }
