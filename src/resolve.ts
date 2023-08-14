@@ -1,10 +1,10 @@
 import type { Strategy, ModuleOptions } from './types';
-import type { Nuxt } from '@nuxt/schema'
+import type { Nuxt } from '@nuxt/schema';
 import { ProviderAliases } from './providers';
 import * as AUTH_PROVIDERS from './providers';
 import { resolvePath } from '@nuxt/kit';
 import { existsSync } from 'fs';
-import { hash } from 'ohash'
+import { hash } from 'ohash';
 
 const BuiltinSchemes = {
     local: 'LocalScheme',

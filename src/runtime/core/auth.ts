@@ -1,4 +1,4 @@
-import type { HTTPRequest, HTTPResponse, Scheme, SchemeCheck, TokenableScheme, RefreshableScheme, ModuleOptions, Route } from '../../types';
+import type { HTTPRequest, HTTPResponse, Scheme, SchemeCheck, TokenableScheme, RefreshableScheme, ModuleOptions, Route, AuthState } from '../../types';
 import type { NuxtApp } from '#app';
 import { isSet, getProp, routeMeta, isRelativeURL } from '../../utils';
 import { navigateTo, useRoute, useRouter } from "#imports";
@@ -14,11 +14,7 @@ export class Auth {
     options: ModuleOptions;
     strategies: Record<string, Scheme> = {};
     $storage: Storage;
-    $state: {
-        strategy: string;
-        user: Record<string, any>;
-        loggedIn: boolean;
-    };
+    $state: AuthState;
     error?: Error;
     #errorListeners?: ErrorListener[] = [];
     #redirectListeners?: RedirectListener[] = [];
@@ -52,7 +48,7 @@ export class Auth {
             }
         }
 
-        return this.strategies[this.$state.strategy];
+        return this.strategies[this.$state.strategy!];
     }
 
     get tokenStrategy(): TokenableScheme {
@@ -67,7 +63,7 @@ export class Auth {
         return this.getStrategy() as Scheme;
     }
 
-    get user(): Record<string, any> | null {
+    get user(): AuthState['user'] {
         return this.$state.user;
     }
 
@@ -76,7 +72,7 @@ export class Auth {
     // ---------------------------------------------------------------
 
     get loggedIn(): boolean {
-        return this.$state.loggedIn;
+        return this.$state.loggedIn!;
     }
 
     get busy(): boolean {

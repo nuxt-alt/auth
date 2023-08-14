@@ -1,24 +1,24 @@
-import type { ModuleOptions } from '../../types';
+import type { ModuleOptions, AuthStoreDefinition, AuthState } from '../../types';
 import type { NuxtApp } from '#app';
 import { isUnset, isSet, decodeValue, encodeValue, setH3Cookie } from '../../utils';
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate';
-import { defineStore, type Pinia, type Store } from 'pinia';
+import { defineStore, type Pinia } from 'pinia';
 import { parse, serialize } from 'cookie-es';
 
 export class Storage {
     ctx: NuxtApp;
     options: ModuleOptions;
-    #store: any;
-    #initStore: any;
-    state: any;
-    #state: any;
+    #store!: AuthStoreDefinition;
+    #initStore!: AuthStoreDefinition;
+    state!: AuthState;
+    #state!: AuthState;
     #piniaEnabled: boolean;
 
     constructor(ctx: NuxtApp, options: ModuleOptions) {
         this.ctx = ctx;
         this.options = {
             ...options,
-            ...(this.ctx.$config && this.ctx.$config.auth)
+            ...(this.ctx.$config && this.ctx.$config.auth as ModuleOptions)
         };
         this.#piniaEnabled = false;
 
@@ -45,7 +45,7 @@ export class Storage {
         this.setSessionStorage(key, value);
 
         // Local state
-        this.setState(key, value);
+        this.setState(key as keyof AuthState, value);
 
         return value;
     }
@@ -55,7 +55,7 @@ export class Storage {
 
         // Local state
         if (process.server) {
-            value = this.getState(key);
+            value = this.getState(key as keyof AuthState);
         }
 
         // Cookies
@@ -75,7 +75,7 @@ export class Storage {
 
         // Local state
         if (isUnset(value)) {
-            value = this.getState(key);
+            value = this.getState(key as keyof AuthState);
         }
 
         return value;
@@ -96,7 +96,7 @@ export class Storage {
     }
 
     removeUniversal(key: string): void {
-        this.removeState(key);
+        this.removeState(key as keyof AuthState);
         this.removeCookie(key);
         this.removeLocalStorage(key);
         this.removeSessionStorage(key);
@@ -123,12 +123,12 @@ export class Storage {
             this.#store = defineStore(this.options.pinia.namespace, {
                 state: () => ({ ...this.options.initialState }),
                 actions: {
-                    SET (payload: any) {
+                    SET(payload: any) {
                         this.$patch({ [payload.key]: payload.value });
                     },
                 },
                 persist: this.options.pinia.persist
-            });
+            }) as unknown as AuthStoreDefinition;
 
             this.#initStore = this.#store(pinia);
             this.state = this.#initStore.$state;
@@ -140,14 +140,14 @@ export class Storage {
     }
 
     get store() {
-        return this.#initStore as Store;
+        return this.#initStore;
     }
 
     getStore() {
-        return this.#initStore as Store;
+        return this.#initStore;
     }
 
-    setState<V extends any>(key: string, value: V): V {
+    setState(key: keyof AuthState, value: any) {
         if (key[0] === '_') {
             this.#state[key] = value;
         }
@@ -162,7 +162,7 @@ export class Storage {
         return value;
     }
 
-    getState(key: string): any {
+    getState(key: keyof AuthState) {
         if (key[0] !== '_') {
             return this.state[key];
         } else {
@@ -172,7 +172,7 @@ export class Storage {
 
     watchState(watchKey: string, fn: (value: any) => void) {
         if (this.#piniaEnabled) {
-            return this.#initStore.$onAction((context: { name: string, args: any[] }) => {
+            return this.#initStore.$onAction((context) => {
                 if (context.name === 'SET') {
                     const { key, value } = context.args[0];
                     if (watchKey === key) {
@@ -183,7 +183,7 @@ export class Storage {
         }
     }
 
-    removeState(key: string): void {
+    removeState(key: keyof AuthState): void {
         this.setState(key, undefined);
     }
 

@@ -1,5 +1,5 @@
-import { ImportOptions } from './resolve'
-import { ModuleOptions, Strategy } from './types'
+import { ImportOptions } from './resolve';
+import { ModuleOptions, Strategy } from './types';
 
 export const getAuthDTS = () => {
 return `import type { Plugin } from '#app'

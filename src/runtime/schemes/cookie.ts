@@ -126,7 +126,7 @@ export class CookieScheme<OptionsT extends CookieSchemeOptions> extends BaseSche
     }
 
     async fetchUser(endpoint?: HTTPRequest): Promise<HTTPResponse | void> {
-        if (!this.check(this.checkStatus ? true : false).valid) {
+        if (!this.check().valid) {
             return Promise.resolve();
         }
 
@@ -136,7 +136,9 @@ export class CookieScheme<OptionsT extends CookieSchemeOptions> extends BaseSche
             return Promise.resolve();
         }
 
-        this.checkStatus = false;
+        if (this.checkStatus) {
+            this.checkStatus = false;
+        }
 
         // Try to fetch user and then set
         return this.$auth
