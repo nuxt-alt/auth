@@ -99,7 +99,6 @@ export class RefreshScheme<OptionsT extends RefreshSchemeOptions = RefreshScheme
                     this.$auth.reset();
                 }
             },
-            // @ts-ignore
             refreshTokenCallback: () => {
                 this.$auth.reset();
             },

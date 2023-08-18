@@ -12,7 +12,7 @@ export * from './strategy';
 export * from './utils';
 export * from './options';
 
-type AuthStoreDefinition = Store<string, AuthState, {}, {
+export type AuthStoreDefinition = Store<string, AuthState, {}, {
     /**
      * Returns a store, creates it if necessary.
      *
@@ -28,13 +28,13 @@ type AuthStoreDefinition = Store<string, AuthState, {}, {
     SET(payload: any): void;
 }>
 
-interface AuthState {
-    // the interface can also hold additional properties with keys can be number, string, or symbol.
-    //[key: string]: unknown;
-    // user object may not be defined initially, keys can be number, string, or symbol with unknown value
-    user?: {
-        [key: string]: unknown;
-    };
+export interface UserInfo {
+    [key: string]: unknown;
+}
+
+export type AuthState = {
+    // user object
+    user?: UserInfo;
     // indicates whether the user is logged in
     loggedIn?: boolean;
     // indicates the strategy of authentication used
@@ -54,8 +54,6 @@ declare const NuxtAuth: NuxtSchema.NuxtModule<ModuleOptions>
 
 export {
     ModuleOptions, 
-    AuthState,
-    AuthStoreDefinition,
     NuxtAuth as default 
 };
 
