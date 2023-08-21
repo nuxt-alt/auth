@@ -1,4 +1,4 @@
-import { FetchConfig } from '@refactorjs/ofetch'
+import { FetchConfig } from '@refactorjs/ofetch';
 
 export type HTTPRequest = FetchConfig & {
     body?: Record<string, any>;

@@ -16,7 +16,6 @@ export default defineBuildConfig({
         { input: 'src/types/', outDir: 'dist/types', ext: 'd.ts' },
         { input: 'src/runtime/', outDir: 'dist/runtime', ext: 'mjs' },
         { input: 'src/utils/', outDir: 'dist/utils', ext: 'mjs' },
-        { input: 'src/providers/', outDir: 'dist/providers', ext: 'mjs' },
     ],
     rollup: {
         emitCJS: false,

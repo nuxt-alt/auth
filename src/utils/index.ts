@@ -155,3 +155,5 @@ export function setH3Cookie(event: H3Event, serializedCookie: string) {
         ) === index
     ));
 }
+
+export const hasOwn = <O extends object, K extends PropertyKey>(object: O, key: K) => Object.hasOwn ? Object.hasOwn(object, key) : Object.prototype.hasOwnProperty.call(object, key);

@@ -1,5 +1,5 @@
 import type { Strategy } from './strategy';
-import type { NuxtPlugin } from '@nuxt/schema'
+import type { NuxtPlugin } from '@nuxt/schema';
 import type { PersistedStateOptions } from 'pinia-plugin-persistedstate';
 
 export interface ModuleOptions {

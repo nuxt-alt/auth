@@ -32,8 +32,8 @@ export class ConfigurationDocument {
         return this.$storage.setState(this.key, value);
     }
 
-    get(): OpenIDConnectConfigurationDocument {
-        return this.$storage.getState(this.key);
+    get() {
+        return this.$storage.getState(this.key) as OpenIDConnectConfigurationDocument;
     }
 
     set(value: OpenIDConnectConfigurationDocument | boolean) {
@@ -44,8 +44,7 @@ export class ConfigurationDocument {
 
     async request() {
         // Get Configuration document from state hydration
-        // @ts-ignore
-        const serverDoc: OpenIDConnectConfigurationDocument = this.scheme.$auth.ctx.payload!.data.$auth?.openIDConnect?.configurationDocument;
+        const serverDoc: OpenIDConnectConfigurationDocument = this.scheme.$auth.ctx.payload.data.$auth?.openIDConnect?.configurationDocument;
 
         if (process.client && serverDoc) {
             this.set(serverDoc);

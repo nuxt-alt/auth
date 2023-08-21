@@ -45,7 +45,7 @@ export class Storage {
         this.setSessionStorage(key, value);
 
         // Local state
-        this.setState(key as keyof AuthState, value);
+        this.setState(key, value);
 
         return value;
     }
@@ -55,7 +55,7 @@ export class Storage {
 
         // Local state
         if (process.server) {
-            value = this.getState(key as keyof AuthState);
+            value = this.getState(key);
         }
 
         // Cookies
@@ -75,7 +75,7 @@ export class Storage {
 
         // Local state
         if (isUnset(value)) {
-            value = this.getState(key as keyof AuthState);
+            value = this.getState(key);
         }
 
         return value;
@@ -96,7 +96,7 @@ export class Storage {
     }
 
     removeUniversal(key: string): void {
-        this.removeState(key as keyof AuthState);
+        this.removeState(key);
         this.removeCookie(key);
         this.removeLocalStorage(key);
         this.removeSessionStorage(key);
@@ -147,8 +147,8 @@ export class Storage {
         return this.#initStore;
     }
 
-    setState(key: keyof AuthState, value: any) {
-        if (key[0] === '_') {
+    setState(key: string, value: any) {
+        if (key.startsWith('_')) {
             this.#state[key] = value;
         }
         else if (this.#piniaEnabled) {
@@ -159,14 +159,14 @@ export class Storage {
             this.state[key] = value;
         }
 
-        return value;
+        return this.state[key];
     }
 
-    getState(key: keyof AuthState) {
-        if (key[0] !== '_') {
+    getState(key: string) {
+        if (!key.startsWith('_')) {
             return this.state[key];
         } else {
-            return this.#state[key];
+            return this.#state[key] as AuthState;
         }
     }
 
@@ -183,7 +183,7 @@ export class Storage {
         }
     }
 
-    removeState(key: keyof AuthState): void {
+    removeState(key: string): void {
         this.setState(key, undefined);
     }
 

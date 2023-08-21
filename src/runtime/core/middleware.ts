@@ -1,4 +1,4 @@
-import { routeMeta, getMatchedComponents, normalizePath } from '../../utils';
+import { routeMeta, getMatchedComponents, normalizePath, hasOwn } from '../../utils';
 import { useNuxtApp, defineNuxtRouteMiddleware } from '#imports';
 
 export default defineNuxtRouteMiddleware(async (to, from) => {
@@ -19,7 +19,7 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
 
     const { login, callback } = ctx.$auth.options.redirect;
 
-    const pageIsInGuestMode = Object.hasOwn(to.meta, 'auth') && routeMeta(to, 'auth', 'guest');
+    const pageIsInGuestMode = hasOwn(to.meta, 'auth') && routeMeta(to, 'auth', 'guest');
 
     const insidePage = (page: string) => normalizePath(to.path) === normalizePath(page);
 

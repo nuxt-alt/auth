@@ -1,7 +1,7 @@
-import type { ProviderPartialOptions, ProviderOptions } from '../types';
-import type { RefreshSchemeOptions } from '../runtime';
-import type { Nuxt } from '@nuxt/schema'
-import { assignDefaults, assignAbsoluteEndpoints } from '../utils/provider';
+import type { ProviderPartialOptions, ProviderOptions } from '../../types';
+import type { RefreshSchemeOptions } from '..';
+import type { Nuxt } from '@nuxt/schema';
+import { assignDefaults, assignAbsoluteEndpoints } from '../../utils/provider';
 
 export interface LaravelJWTProviderOptions extends ProviderOptions, RefreshSchemeOptions {
     url: string;

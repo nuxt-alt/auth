@@ -1,9 +1,9 @@
 import type { RefreshableScheme, SchemePartialOptions, SchemeCheck, RefreshableSchemeOptions, UserOptions, SchemeOptions, HTTPResponse, EndpointsOption, TokenableSchemeOptions } from '../../types';
-import type { IncomingMessage } from 'http'
+import type { IncomingMessage } from 'node:http';
 import type { Auth } from '../core';
 import { getProp, normalizePath, randomString, removeTokenPrefix, parseQuery } from '../../utils';
 import { RefreshController, RequestHandler, ExpiredAuthSessionError, Token, RefreshToken } from '../inc';
-import { joinURL, withQuery } from 'ufo'
+import { joinURL, withQuery } from 'ufo';
 import { BaseScheme } from './base';
 import { useRoute, useRuntimeConfig } from '#imports';
 import requrl from 'requrl';
@@ -197,7 +197,7 @@ export class Oauth2Scheme<OptionsT extends Oauth2SchemeOptions = Oauth2SchemeOpt
         this.requestHandler.reset();
     }
 
-    async login($opts: { state?: string; params?: any; nonce?: string } = {}): Promise<void> {
+    async login(options: { state?: string; params?: any; nonce?: string } = {}): Promise<void> {
         const opts = {
             protocol: 'oauth2',
             response_type: this.options.responseType,
@@ -207,12 +207,12 @@ export class Oauth2Scheme<OptionsT extends Oauth2SchemeOptions = Oauth2SchemeOpt
             scope: this.scope,
             // Note: The primary reason for using the state parameter is to mitigate CSRF attacks.
             // https://auth0.com/docs/protocols/oauth2/oauth-state
-            state: $opts.state || randomString(10),
+            state: options.state || randomString(10),
             code_challenge_method: this.options.codeChallengeMethod,
             clientWindow: this.options.clientWindow,
             clientWindowWidth: this.options.clientWindowWidth,
             clientWindowHeight: this.options.clientWindowHeight,
-            ...$opts.params,
+            ...options.params,
         };
 
         if (this.options.organization) {
@@ -259,7 +259,7 @@ export class Oauth2Scheme<OptionsT extends Oauth2SchemeOptions = Oauth2SchemeOpt
         // Keycloak uses nonce for token as well, so support that too
         // https://github.com/nuxt-community/auth-module/pull/709
         if (opts.response_type.includes('token') || opts.response_type.includes('id_token')) {
-            opts.nonce = $opts.nonce || randomString(10);
+            opts.nonce = options.nonce || randomString(10);
         }
 
         if (opts.code_challenge_method) {

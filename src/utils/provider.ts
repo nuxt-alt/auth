@@ -1,6 +1,6 @@
 import type { Oauth2SchemeOptions, RefreshSchemeOptions, LocalSchemeOptions, CookieSchemeOptions } from '../runtime';
 import type { StrategyOptions, HTTPRequest } from '../types';
-import type { Nuxt } from '@nuxt/schema'
+import type { Nuxt } from '@nuxt/schema';
 import { addServerHandler, addTemplate } from '@nuxt/kit';
 import { join } from 'pathe';
 import { defu } from 'defu';

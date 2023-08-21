@@ -69,13 +69,13 @@ export default defineNuxtModule({
         const runtime = resolver.resolve('runtime');
         nuxt.options.alias['#auth/runtime'] = runtime;
 
+        // Providers
+        const providers = resolver.resolve('runtime/providers');
+        nuxt.options.alias['#auth/providers'] = providers;
+
         // Utils
         const utils = resolver.resolve('utils');
         nuxt.options.alias['#auth/utils'] = utils;
-
-        // Providers
-        const providers = resolver.resolve('providers');
-        nuxt.options.alias['#auth/providers'] = providers;
 
         // Transpile
         nuxt.options.build.transpile.push(runtime, providers, utils)

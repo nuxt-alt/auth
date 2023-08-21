@@ -5,7 +5,7 @@ import { normalizePath, getProp, parseQuery } from '../../utils';
 import { IdToken, ConfigurationDocument } from '../inc';
 import { IdTokenableSchemeOptions } from '../../types';
 import { useRoute } from '#imports';
-import { withQuery, QueryObject, QueryValue } from 'ufo'
+import { withQuery, QueryObject, QueryValue } from 'ufo';
 
 export interface OpenIDConnectSchemeEndpoints extends Oauth2SchemeEndpoints {
     configuration: string;

@@ -1,12 +1,12 @@
 import type { Strategy, ModuleOptions } from './types';
 import type { Nuxt } from '@nuxt/schema';
-import { ProviderAliases } from './providers';
-import * as AUTH_PROVIDERS from './providers';
+import { ProviderAliases } from './runtime/providers';
+import * as AUTH_PROVIDERS from './runtime/providers';
 import { resolvePath } from '@nuxt/kit';
 import { existsSync } from 'fs';
 import { hash } from 'ohash';
 
-const BuiltinSchemes = {
+export const BuiltinSchemes = {
     local: 'LocalScheme',
     cookie: 'CookieScheme',
     oauth2: 'Oauth2Scheme',
@@ -22,7 +22,7 @@ export interface ImportOptions {
     from: string;
 }
 
-export async function resolveStrategies(nuxt: Nuxt, options: ModuleOptions): Promise<{ strategies: Strategy[]; strategyScheme: Record<string, ImportOptions>; }> {
+export async function resolveStrategies(nuxt: Nuxt, options: ModuleOptions) {
     const strategies: Strategy[] = [];
     const strategyScheme = {} as Record<string, ImportOptions>;
 
@@ -78,7 +78,7 @@ export async function resolveStrategies(nuxt: Nuxt, options: ModuleOptions): Pro
     };
 }
 
-export async function resolveScheme(scheme: string): Promise<ImportOptions | void> {
+export async function resolveScheme(scheme: string) {
     if (typeof scheme !== 'string') {
         return;
     }

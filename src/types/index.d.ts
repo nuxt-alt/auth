@@ -33,6 +33,7 @@ export interface UserInfo {
 }
 
 export type AuthState = {
+    [key: string]: unknown;
     // user object
     user?: UserInfo;
     // indicates whether the user is logged in

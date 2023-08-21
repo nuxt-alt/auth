@@ -1,6 +1,6 @@
 import type { HTTPRequest, HTTPResponse, Scheme, SchemeCheck, TokenableScheme, RefreshableScheme, ModuleOptions, Route, AuthState } from '../../types';
 import type { NuxtApp } from '#app';
-import { isSet, getProp, routeMeta, isRelativeURL } from '../../utils';
+import { isSet, getProp, routeMeta, isRelativeURL, hasOwn } from '../../utils';
 import { navigateTo, useRoute, useRouter } from "#imports";
 import { Storage } from './storage';
 import { isSamePath, withQuery } from 'ufo';
@@ -113,7 +113,7 @@ export class Auth {
             if (process.client && this.options.watchLoggedIn) {
                 this.$storage.watchState('loggedIn', (loggedIn: boolean) => {
                     if (this.$state.loggedIn === loggedIn) return;
-                    if (Object.hasOwn(useRoute().meta, 'auth') && !routeMeta(useRoute(), 'auth', false)) {
+                    if (hasOwn(useRoute().meta, 'auth') && !routeMeta(useRoute(), 'auth', false)) {
                         this.redirect(loggedIn ? 'home' : 'logout');
                     }
                 });
