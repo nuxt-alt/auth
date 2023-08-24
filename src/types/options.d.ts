@@ -1,6 +1,7 @@
 import type { Strategy } from './strategy';
 import type { NuxtPlugin } from '@nuxt/schema';
 import type { PersistedStateOptions } from 'pinia-plugin-persistedstate';
+import type { AuthState } from './index';
 
 export interface ModuleOptions {
     globalMiddleware?: boolean;
@@ -42,10 +43,5 @@ export interface ModuleOptions {
     };
     localStorage: { prefix: string; } | false;
     sessionStorage: { prefix: string; } | false;
-    initialState?: {
-        user: null;
-        loggedIn: boolean;
-        strategy?: string | null;
-        busy?: boolean | null;
-    };
+    initialState?: AuthState;
 }

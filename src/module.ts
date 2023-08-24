@@ -52,6 +52,7 @@ export default defineNuxtModule({
         addPluginTemplate({
             getContents: () => getAuthPlugin({ options, strategies, strategyScheme, schemeImports }),
             filename: 'auth.plugin.mjs',
+            write: true
         });
 
         addTemplate({

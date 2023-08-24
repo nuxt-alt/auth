@@ -25,7 +25,7 @@ export class Auth {
 
         // Storage & State
         const initialState = {
-            user: null,
+            user: undefined,
             loggedIn: false
         };
 

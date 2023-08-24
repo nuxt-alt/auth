@@ -42,7 +42,8 @@ export default defineNuxtPlugin(nuxtApp => {
 
     nuxtApp.provide('auth', auth)
 
-    return auth.init().catch(error => {
+    return auth.init()
+    .catch(error => {
         if (process.client) {
             // Don't console log expired auth session errors. This error is common, and expected to happen.
             // The error happens whenever the user does an ssr request (reload/initial navigation) with an expired refresh

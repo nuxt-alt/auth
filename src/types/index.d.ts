@@ -47,7 +47,6 @@ export type AuthState = {
 declare module '#app' {
     interface NuxtApp {
         $auth: Auth;
-        ssrContext?: NuxtSSRContext;
     }
 }
 

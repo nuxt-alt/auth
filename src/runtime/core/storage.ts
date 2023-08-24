@@ -10,17 +10,13 @@ export class Storage {
     options: ModuleOptions;
     #store!: AuthStoreDefinition;
     #initStore!: AuthStoreDefinition;
-    state!: AuthState;
-    #state!: AuthState;
-    #piniaEnabled: boolean;
+    state: AuthState = {};
+    #state: AuthState = {};
+    #piniaEnabled: boolean = false;
 
     constructor(ctx: NuxtApp, options: ModuleOptions) {
         this.ctx = ctx;
-        this.options = {
-            ...options,
-            ...(this.ctx.$config && this.ctx.$config.auth as ModuleOptions)
-        };
-        this.#piniaEnabled = false;
+        this.options = options;
 
         this.#initState();
     }
