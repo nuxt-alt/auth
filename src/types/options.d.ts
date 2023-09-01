@@ -1,6 +1,5 @@
 import type { Strategy } from './strategy';
 import type { NuxtPlugin } from '@nuxt/schema';
-import type { PersistedStateOptions } from 'pinia-plugin-persistedstate';
 import type { AuthState } from './index';
 
 export interface ModuleOptions {
@@ -27,8 +26,6 @@ export interface ModuleOptions {
     };
     pinia: {
         namespace: string;
-        persist?: boolean | PersistedStateOptions | PersistedStateOptions[];
-        persistType?: 'plugin' | 'nuxt';
     };
     cookie: {
         prefix?: string;

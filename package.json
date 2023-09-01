@@ -1,9 +1,9 @@
 {
     "name": "@nuxt-alt/auth",
-    "version": "2.6.0-beta.1",
+    "version": "2.6.0",
     "description": "An alternative module to @nuxtjs/auth",
     "homepage": "https://github.com/nuxt-alt/auth",
-    "author": "Teranode",
+    "author": "Denoder",
     "keywords": [
         "nuxt",
         "nuxtjs",
@@ -43,7 +43,6 @@
         "jwt-decode": "latest",
         "ohash": "latest",
         "pathe": "latest",
-        "pinia-plugin-persistedstate": "latest",
         "requrl": "latest"
     },
     "devDependencies": {

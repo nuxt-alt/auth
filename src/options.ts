@@ -37,8 +37,6 @@ export const moduleDefaults = {
 
     pinia: {
         namespace: 'auth',
-        persist: false,
-        persistType: undefined
     },
 
     // -- Cookie Store --

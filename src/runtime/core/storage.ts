@@ -1,7 +1,6 @@
 import type { ModuleOptions, AuthStoreDefinition, AuthState } from '../../types';
 import type { NuxtApp } from '#app';
 import { isUnset, isSet, decodeValue, encodeValue, setH3Cookie } from '../../utils';
-import piniaPluginPersistedstate from 'pinia-plugin-persistedstate';
 import { defineStore, type Pinia } from 'pinia';
 import { parse, serialize } from 'cookie-es';
 
@@ -112,18 +111,13 @@ export class Storage {
         this.#piniaEnabled = this.options.pinia && !!pinia;
 
         if (this.#piniaEnabled) {
-            if (this.options.pinia.persistType === 'plugin') {
-                pinia.use(piniaPluginPersistedstate)
-            }
-
             this.#store = defineStore(this.options.pinia.namespace, {
                 state: () => ({ ...this.options.initialState }),
                 actions: {
                     SET(payload: any) {
                         this.$patch({ [payload.key]: payload.value });
                     },
-                },
-                persist: this.options.pinia.persist
+                }
             }) as unknown as AuthStoreDefinition;
 
             this.#initStore = this.#store(pinia);
