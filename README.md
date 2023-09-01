@@ -61,20 +61,6 @@ Enables/disables the built-in middleware.
 
 Changed from vuex to pinia, this is the namespace to use for the pinia store.
 
-### `pinia.persist`
-
-- Type: `boolean | PersistedStateOptions | PersistedStateOptions[];`
-- Default: `false`
-
-Persist options to use for the `pinia-plugin-persistedstate` plugin.
-
-### `pinia.persistType`
-
-- Type: `undefined | plugin | nuxt`
-- Default: `undefined`
-
-The `pinia-plugin-persistedstate` has a nuxt module readily avalable to use, if you are not using the nuxt module set this options to 'plugin'
-
 ### `sessionStorage`
 
 - Type: `String | False`
@@ -110,9 +96,18 @@ The cookie scheme has been decoupled from the local scheme as it does not utitli
 
 The `cookie.server` param has been removed. This was meant as a workaround to decouple the server and client user request when logging in because the check was being overriden. This should be fixed in 2.5.0. The `user.property` param no longer needs to be separated by server and client so use `user.property` instead of `user.property.server` and `user.property.client`.
 
-## Pinia Persist (Experimental)
+## TypeScript (2.6.0+)
 
-Ive added compatibility with the `pinia-plugin-persistedstate` plguin. please takea look at that plugin's documentation for nuxt and/or plugin usage. I'm still experimenting with it so there may be bugs with it's usage. Documentation has been provided on the options available to you if you decide to use this.
+The user information can be edited like so for TypeScript:
+
+```ts
+declare module '@nuxt-alt/auth' {
+    interface UserInfo {
+        email: string
+        name: string
+    }
+}
+```
 
 ## Oauth2
 
