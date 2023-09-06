@@ -402,7 +402,9 @@ export class Auth {
         }
 
         if (this.options.redirectStrategy === 'storage') {
-            to = withQuery(to, currentRoute.query);
+            if (this.options.fullPathRedirect) {
+                to = withQuery(to, currentRoute.query);
+            }
         }
 
         if (!router || !isRelativeURL(to)) {
