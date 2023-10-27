@@ -2,7 +2,7 @@ import type { RefreshableScheme } from '../../types';
 import type { Storage } from '../core';
 import { addTokenPrefix } from '../../utils';
 import { TokenStatus } from './token-status';
-import jwtDecode, { JwtPayload } from 'jwt-decode';
+import { type JwtPayload, jwtDecode } from 'jwt-decode';
 
 export class RefreshToken {
     scheme: RefreshableScheme;

@@ -3,7 +3,7 @@ import type { TokenableScheme } from '../../types';
 import type { Storage } from '../core';
 import { addTokenPrefix } from '../../utils';
 import { TokenStatus } from './token-status';
-import decode from 'jwt-decode';
+import { jwtDecode } from 'jwt-decode';
 
 export class Token {
     scheme: TokenableScheme;
@@ -80,7 +80,7 @@ export class Token {
         const tokenExpiresAtMillis = tokenTTLMillis ? tokenIssuedAtMillis + tokenTTLMillis : 0;
 
         try {
-            tokenExpiration = decode<JwtPayload>(token as string).exp! * 1000 || tokenExpiresAtMillis;
+            tokenExpiration = jwtDecode<JwtPayload>(token as string).exp! * 1000 || tokenExpiresAtMillis;
         } 
         catch (error: any) {
             // If the token is not jwt, we can't decode and refresh it, use tokenExpiresAt value

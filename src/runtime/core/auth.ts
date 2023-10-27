@@ -260,13 +260,13 @@ export class Auth {
     // Utils
     // ---------------------------------------------------------------
 
-    setUser(user: any): void {
+    setUser(user: AuthState | false, schemeCheck: boolean = true): void {
         this.$storage.setState('user', user);
 
         let check = { valid: Boolean(user) };
 
         // If user is defined, perform scheme checks.
-        if (check.valid) {
+        if (schemeCheck && check.valid) {
             check = this.check();
         }
 

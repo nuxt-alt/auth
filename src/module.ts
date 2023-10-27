@@ -1,5 +1,5 @@
 import type { ModuleOptions } from './types';
-import { addImports, addPluginTemplate, addTemplate, createResolver, defineNuxtModule, installModule } from '@nuxt/kit';
+import { addImports, addPluginTemplate, addTemplate, createResolver, defineNuxtModule, installModule, addRouteMiddleware } from '@nuxt/kit';
 import { name, version } from '../package.json';
 import { resolveStrategies } from './resolve';
 import { moduleDefaults } from './options';
@@ -83,13 +83,11 @@ export default defineNuxtModule({
 
         // Middleware
         if (options.enableMiddleware) {
-            nuxt.hook('app:resolve', (app) => {
-                app.middleware.push({
-                    name: 'auth',
-                    path: resolver.resolve('runtime/core/middleware'),
-                    global: options.globalMiddleware,
-                });
-            });
+            addRouteMiddleware({ 
+                name: 'auth',
+                path: resolver.resolve('runtime/core/middleware'),
+                global: options.globalMiddleware
+            }, { override: true })
         }
 
         // Extend auth with plugins

@@ -73,10 +73,10 @@ export class CookieScheme<OptionsT extends CookieSchemeOptions> extends BaseSche
         return this.$auth.fetchUserOnce();
     }
 
-    check(checkStatus = false): SchemeCheck {
+    check(): SchemeCheck {
         const response = { valid: false };
 
-        if (!checkStatus) {
+        if (!this.checkStatus) {
             response.valid = true
             return response
         }
