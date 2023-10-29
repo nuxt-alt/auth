@@ -3,7 +3,7 @@ import { useNuxtApp, defineNuxtRouteMiddleware } from '#imports';
 
 export default defineNuxtRouteMiddleware(async (to, from) => {
     // Disable middleware if options: { auth: false } is set on the route
-    if (Object.hasOwn(to.meta, 'auth') && routeMeta(to, 'auth', false)) {
+    if (hasOwn(to.meta, 'auth') && routeMeta(to, 'auth', false)) {
         return;
     }
 

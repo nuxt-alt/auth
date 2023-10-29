@@ -1,6 +1,6 @@
 {
     "name": "@nuxt-alt/auth",
-    "version": "2.7.0",
+    "version": "2.7.1",
     "description": "An alternative module to @nuxtjs/auth",
     "homepage": "https://github.com/nuxt-alt/auth",
     "author": "Denoder",
@@ -35,12 +35,12 @@
     },
     "dependencies": {
         "@nuxt-alt/http": "latest",
-        "@nuxt/kit": ">=3.4.0",
+        "@nuxt/kit": "^3.8.0",
         "body-parser": "^1.20.2",
         "cookie-es": "^1.0.0",
         "defu": "^6.1.3",
         "jwt-decode": "^4.0.0",
-        "ohash": "1.1.3",
+        "ohash": "^1.1.3",
         "pathe": "^1.1.1",
         "pinia": "^2.1.7",
         "requrl": "^3.0.2"
