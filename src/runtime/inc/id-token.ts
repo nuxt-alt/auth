@@ -1,6 +1,6 @@
 import { jwtDecode, type JwtPayload } from 'jwt-decode';
 import { addTokenPrefix } from '../../utils';
-import type { IdTokenableScheme } from '../../types';
+import type { AuthState, IdTokenableScheme } from '../../types';
 import type { Storage } from '../core';
 import { TokenStatus } from './token-status';
 
@@ -100,7 +100,7 @@ export class IdToken {
     userInfo() {
         const idToken = this.get();
         if (typeof idToken === 'string') {
-            return jwtDecode(idToken);
+            return jwtDecode(idToken) as AuthState['user'];
         }
     }
 }

@@ -36,10 +36,10 @@ export class TokenStatus {
 
         // Give us some slack to help the token from expiring between validation and usage
         const timeSlackMillis = 500;
-        const adjustedTokenExpiresAt = tokenExpiresAt - timeSlackMillis;
+        tokenExpiresAt -= timeSlackMillis;
 
         // Token is still valid
-        if (now < adjustedTokenExpiresAt) {
+        if (now < tokenExpiresAt) {
             return TokenStatusEnum.VALID;
         }
 
