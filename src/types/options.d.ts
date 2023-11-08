@@ -31,7 +31,7 @@ export interface ModuleOptions {
         prefix?: string;
         options?: {
             path?: string;
-            expires?: Date | number;
+            expires?: Date;
             maxAge?: number;
             domain?: string;
             secure?: boolean;

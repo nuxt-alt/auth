@@ -348,7 +348,7 @@ export class Storage {
     // Cookies
     // ------------------------------------
 
-    setCookie<V extends any>(key: string, value: V, options: ModuleOptions['cookie'] & { expires?: Date } = {}) {
+    setCookie<V extends any>(key: string, value: V, options: ModuleOptions['cookie'] = {}) {
         if (!this.isCookiesEnabled()) {
             return;
         }
@@ -361,11 +361,6 @@ export class Storage {
         // Unset null, undefined
         if (isUnset(value)) {
             $options.maxAge = -1;
-        }
-
-        // Accept expires as a number for js-cookie compatiblity
-        if (typeof $options.expires === 'number') {
-            $options.expires = new Date(2147483647 * 1000);
         }
 
         const serializedCookie = serialize($key, $value, $options);

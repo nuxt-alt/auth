@@ -50,10 +50,16 @@ declare module '#app' {
     }
 }
 
+declare module 'vue' {
+    interface ComponentCustomProperties {
+        $auth: Auth;
+    }
+}
+
 declare const NuxtAuth: NuxtSchema.NuxtModule<ModuleOptions>
 
 export {
-    ModuleOptions, 
-    NuxtAuth as default 
+    ModuleOptions,
+    NuxtAuth as default
 };
 

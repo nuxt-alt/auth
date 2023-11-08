@@ -106,8 +106,8 @@ export function authorizeMiddlewareFile(opt: any): string {
 return `
 import qs from 'querystring'
 import bodyParser from 'body-parser'
-import { defineEventHandler } from 'h3'
-import { createInstance } from '@refactorjs/ofetch';
+import { defineEventHandler, readBody } from 'h3'
+import { createInstance } from '@refactorjs/ofetch'
 
 // Form data parser
 const formMiddleware = bodyParser.urlencoded({ extended: true })
@@ -119,19 +119,19 @@ export default defineEventHandler(async (event) => {
             if (err) {
                 reject(err)
             } else {
-                resolve(event)
+                resolve()
             }
         }
 
-        if (!event.req.url.includes(options.endpoint)) {
+        if (!event.node.req.url.includes(options.endpoint)) {
             return next()
         }
     
-        if (event.req.method !== 'POST') {
+        if (event.node.req.method !== 'POST') {
             return next()
         }
     
-        formMiddleware(event.req, event.res, () => {
+        formMiddleware(event.node.req, event.node.res, async () => {
             const {
                 code,
                 code_verifier: codeVerifier,
@@ -139,7 +139,7 @@ export default defineEventHandler(async (event) => {
                 response_type: responseType = options.strategy.responseType,
                 grant_type: grantType = options.strategy.grantType,
                 refresh_token: refreshToken
-            } = event.req.body
+            } = await readBody(event)
 
             // Grant type is authorization code, but code is not available
             if (grantType === 'authorization_code' && !code) {
@@ -151,7 +151,7 @@ export default defineEventHandler(async (event) => {
                 return next()
             }
 
-            let data: qs.ParsedUrlQueryInput | string = {
+            let body: qs.ParsedUrlQueryInput | string = {
                 client_id: options.clientID,
                 client_secret: options.clientSecret,
                 refresh_token: refreshToken,
@@ -169,22 +169,22 @@ export default defineEventHandler(async (event) => {
             }
 
             if (options.useForms) {
-                data = qs.stringify(data)
+                body = qs.stringify(body)
                 headers['Content-Type'] = 'application/x-www-form-urlencoded'
             }
 
             const $fetch = createInstance()
 
             $fetch.$post(options.tokenEndpoint, {
-                body: data,
+                body: body,
                 headers
             })
             .then((response) => {
-                event.res.end(JSON.stringify(response))
+                event.node.res.end(JSON.stringify(response))
             })
             .catch((error) => {
-                event.res.statusCode = error.response.status
-                event.res.end(JSON.stringify(error.response.data))
+                event.node.res.statusCode = error.response.status
+                event.node.res.end(JSON.stringify(error.response.data))
             })
         })
     })
@@ -196,8 +196,8 @@ export function passwordGrantMiddlewareFile(opt: any): string {
 return `
 import requrl from 'requrl'
 import bodyParser from 'body-parser'
-import { defineEventHandler } from 'h3'
-import { createInstance } from '@refactorjs/ofetch';
+import { defineEventHandler, readBody } from 'h3'
+import { createInstance } from '@refactorjs/ofetch'
 
 // Form data parser
 const formMiddleware = bodyParser.json()
@@ -209,60 +209,60 @@ export default defineEventHandler(async (event) => {
             if (err) {
                 reject(err)
             } else {
-                resolve(event)
+                resolve()
             }
         }
 
-        if (!event.req.url.includes(options.endpoint)) {
+        if (!event.node.req.url.includes(options.endpoint)) {
             return next()
         }
 
-        if (event.req.method !== 'POST') {
+        if (event.node.req.method !== 'POST') {
             return next()
         }
 
-        formMiddleware(event.req, event.res, () => {
-            const data = event.req.body
-    
+        formMiddleware(event.node.req, event.node.res, async () => {
+            const body = await readBody(event)
+
             // If \`grant_type\` is not defined, set default value
-            if (!data.grant_type) {
-                data.grant_type = options.strategy.grantType
+            if (!body.grant_type) {
+                body.grant_type = options.strategy.grantType
             }
 
             // If \`client_id\` is not defined, set default value
-            if (!data.client_id) {
-                data.grant_type = options.clientId
+            if (!body.client_id) {
+                body.grant_type = options.clientId
             }
 
             // Grant type is password, but username or password is not available
-            if (data.grant_type === 'password' && (!data.username || !data.password)) {
+            if (body.grant_type === 'password' && (!body.username || !body.password)) {
                 return next(new Error('Invalid username or password'))
             }
 
             // Grant type is refresh token, but refresh token is not available
-            if (data.grant_type === 'refresh_token' && !data.refresh_token) {
+            if (body.grant_type === 'refresh_token' && !body.refresh_token) {
                 return next(new Error('Refresh token not provided'))
             }
 
             const $fetch = createInstance()
 
             $fetch.$post(options.tokenEndpoint, {
-                baseURL: requrl(event.req),
+                baseURL: requrl(event.node.req),
                 body: {
                     client_id: options.clientId,
                     client_secret: options.clientSecret,
-                    ...data
+                    ...body
                 },
                 headers: {
                     Accept: 'application/json'
                 }
             })
             .then((response) => {
-                event.res.end(JSON.stringify(response))
+                event.node.res.end(JSON.stringify(response))
             })
             .catch((error) => {
-                event.res.statusCode = error.response.status
-                event.res.end(JSON.stringify(error.response.data))
+                event.node.res.statusCode = error.response.status
+                event.node.res.end(JSON.stringify(error.response.data))
             })
         })
     })
