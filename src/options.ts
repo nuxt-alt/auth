@@ -1,4 +1,6 @@
-export const moduleDefaults = {
+import { type ModuleOptions } from "./types";
+
+export const moduleDefaults: ModuleOptions = {
     // -- Enable Global Middleware --
     globalMiddleware: false,
 

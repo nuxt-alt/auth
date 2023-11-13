@@ -2,7 +2,7 @@ import type { HTTPRequest, HTTPResponse, RefreshableScheme, RefreshableSchemeOpt
 import type { Auth } from '..';
 import { cleanObj, getProp } from '../../utils';
 import { RefreshController, RefreshToken, ExpiredAuthSessionError } from '../inc';
-import { LocalScheme, LocalSchemeEndpoints, LocalSchemeOptions } from './local';
+import { LocalScheme, type LocalSchemeEndpoints, type LocalSchemeOptions } from './local';
 
 export interface RefreshSchemeEndpoints extends LocalSchemeEndpoints {
     refresh: HTTPRequest;
@@ -37,7 +37,7 @@ export class RefreshScheme<OptionsT extends RefreshSchemeOptions = RefreshScheme
 {
     refreshToken: RefreshToken;
     refreshController: RefreshController;
-    refreshRequest: Promise<HTTPResponse> | null = null
+    refreshRequest: Promise<HTTPResponse<any>> | null = null
 
     constructor($auth: Auth, options: SchemePartialOptions<RefreshSchemeOptions>) {
         super($auth, options, DEFAULTS);
@@ -92,7 +92,7 @@ export class RefreshScheme<OptionsT extends RefreshSchemeOptions = RefreshScheme
         return response;
     }
 
-    mounted(): Promise<HTTPResponse | void> {
+    mounted(): Promise<HTTPResponse<any> | void> {
         return super.mounted({
             tokenCallback: () => {
                 if (this.options.autoLogout) {
@@ -105,7 +105,7 @@ export class RefreshScheme<OptionsT extends RefreshSchemeOptions = RefreshScheme
         });
     }
 
-    async refreshTokens(): Promise<HTTPResponse | void> {
+    async refreshTokens(): Promise<HTTPResponse<any> | void> {
         // Refresh endpoint is disabled
         if (!this.options.endpoints.refresh) {
             return Promise.resolve();
@@ -161,7 +161,7 @@ export class RefreshScheme<OptionsT extends RefreshSchemeOptions = RefreshScheme
 
         cleanObj(endpoint.body);
 
-        this.refreshRequest = this.refreshRequest || this.$auth.request(endpoint, this.options.endpoints.refresh) as Promise<HTTPResponse>
+        this.refreshRequest = this.refreshRequest || this.$auth.request(endpoint, this.options.endpoints.refresh) as Promise<HTTPResponse<any>>
   
         return this.refreshRequest
             .then((response) => {
@@ -179,7 +179,7 @@ export class RefreshScheme<OptionsT extends RefreshSchemeOptions = RefreshScheme
             })
     }
 
-    setUserToken(token: string | boolean, refreshToken?: string | boolean): Promise<HTTPResponse | void> {
+    setUserToken(token: string | boolean, refreshToken?: string | boolean): Promise<HTTPResponse<any> | void> {
         this.token.set(token);
 
         if (refreshToken) {
@@ -200,11 +200,11 @@ export class RefreshScheme<OptionsT extends RefreshSchemeOptions = RefreshScheme
         }
     }
 
-    protected extractRefreshToken(response: HTTPResponse): string {
+    protected extractRefreshToken(response: HTTPResponse<any>): string {
         return getProp(response._data, this.options.refreshToken.property) as string
     }
 
-    protected updateTokens(response: HTTPResponse, { isRefreshing = false, updateOnRefresh = true } = {}): void {
+    protected updateTokens(response: HTTPResponse<any>, { isRefreshing = false, updateOnRefresh = true } = {}): void {
         const token = this.options.token?.required ? this.extractToken(response) : true;
         const refreshToken = this.options.refreshToken.required ? this.extractRefreshToken(response) : true;
 

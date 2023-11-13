@@ -1,7 +1,7 @@
 import type { ModuleOptions } from './options';
-import type { NuxtSSRContext } from '#app';
 import type { Auth } from '../runtime';
 import type { Store, Pinia, StoreGeneric } from 'pinia';
+import * as NuxtSchema from '@nuxt/schema';
 
 export * from './openIDConnectConfigurationDocument';
 export * from './provider';
@@ -50,9 +50,12 @@ declare module '#app' {
     }
 }
 
-declare module 'vue' {
-    interface ComponentCustomProperties {
-        $auth: Auth;
+declare module '@nuxt/schema' {
+    interface NuxtConfig {
+        ['auth']?: Partial<ModuleOptions>
+    }
+    interface NuxtOptions {
+        ['auth']?: ModuleOptions
     }
 }
 

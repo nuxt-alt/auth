@@ -22,6 +22,10 @@ export default defineBuildConfig({
         cjsBridge: true,
     },
     externals: [
+        '#app',
+        '@refactorjs/ofetch',
+        'ofetch',
+        'vue-router',
         '@nuxt/schema',
         '@nuxt/schema-edge',
         '@nuxt/kit',

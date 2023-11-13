@@ -1,6 +1,6 @@
 import { ConfigurationDocumentRequestError } from './configuration-document-request-error';
-import { OpenIDConnectScheme, OpenIDConnectSchemeEndpoints } from '../schemes';
-import { OpenIDConnectConfigurationDocument } from '../../types';
+import { OpenIDConnectScheme, type OpenIDConnectSchemeEndpoints } from '../schemes';
+import { type OpenIDConnectConfigurationDocument } from '../../types';
 import { Storage } from '../core/storage';
 import { defu } from 'defu';
 

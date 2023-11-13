@@ -179,7 +179,7 @@ export default defineEventHandler(async (event) => {
 
 export function passwordGrantMiddlewareFile(opt: any): string {
 return `import requrl from 'requrl';
-import { defineEventHandler, readBody } from 'h3';
+import { defineEventHandler, readBody, createError } from 'h3';
 import { createInstance } from '@refactorjs/ofetch';
 
 const options = ${JSON.stringify(opt)}

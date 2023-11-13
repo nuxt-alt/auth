@@ -1,11 +1,11 @@
 import type { HTTPResponse, SchemeCheck, SchemePartialOptions } from '../../types';
 import type { Auth } from '..';
-import { Oauth2Scheme, Oauth2SchemeEndpoints, Oauth2SchemeOptions } from './oauth2';
+import { Oauth2Scheme, type Oauth2SchemeEndpoints, type Oauth2SchemeOptions } from './oauth2';
 import { normalizePath, getProp, parseQuery } from '../../utils';
 import { IdToken, ConfigurationDocument } from '../inc';
-import { IdTokenableSchemeOptions } from '../../types';
+import { type IdTokenableSchemeOptions } from '../../types';
 import { useRoute } from '#imports';
-import { withQuery, QueryObject, QueryValue } from 'ufo';
+import { withQuery, type QueryObject, type QueryValue } from 'ufo';
 
 export interface OpenIDConnectSchemeEndpoints extends Oauth2SchemeEndpoints {
     configuration: string;
@@ -45,7 +45,7 @@ export class OpenIDConnectScheme<OptionsT extends OpenIDConnectSchemeOptions = O
         this.configurationDocument = new ConfigurationDocument(this, this.$auth.$storage);
     }
 
-    protected updateTokens(response: HTTPResponse): void {
+    protected updateTokens(response: HTTPResponse<any>): void {
         super.updateTokens(response);
         const idToken = getProp(response._data, this.options.idToken.property) as string;
 
@@ -171,7 +171,7 @@ export class OpenIDConnectScheme<OptionsT extends OpenIDConnectSchemeOptions = O
             url: this.options.endpoints.userInfo,
         });
 
-        this.$auth.setUser(data);
+        this.$auth.setUser(data._data);
     }
 
     async #handleCallback() {

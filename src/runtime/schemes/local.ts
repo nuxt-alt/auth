@@ -101,7 +101,7 @@ export class LocalScheme<OptionsT extends LocalSchemeOptions = LocalSchemeOption
         return response;
     }
 
-    mounted({ tokenCallback = () => this.$auth.reset(), refreshTokenCallback = () => undefined } = {}): Promise<HTTPResponse | void> {
+    mounted({ tokenCallback = () => this.$auth.reset(), refreshTokenCallback = () => undefined } = {}): Promise<HTTPResponse<any> | void> {
         const { tokenExpired, refreshTokenExpired } = this.check(true);
 
         if (refreshTokenExpired && typeof refreshTokenCallback === 'function') {
@@ -117,7 +117,7 @@ export class LocalScheme<OptionsT extends LocalSchemeOptions = LocalSchemeOption
         return this.$auth.fetchUserOnce();
     }
 
-    async login(endpoint: HTTPRequest, { reset = true } = {}): Promise<HTTPResponse> {
+    async login(endpoint: HTTPRequest, { reset = true } = {}): Promise<HTTPResponse<any> | void> {
         if (!this.options.endpoints.login) {
             return;
         }
@@ -163,14 +163,14 @@ export class LocalScheme<OptionsT extends LocalSchemeOptions = LocalSchemeOption
         return response;
     }
 
-    setUserToken(token: string): Promise<HTTPResponse | void> {
+    setUserToken(token: string): Promise<HTTPResponse<any> | void> {
         this.token.set(token);
 
         // Fetch user
         return this.fetchUser();
     }
 
-    async fetchUser(endpoint?: HTTPRequest): Promise<HTTPResponse | void> {
+    async fetchUser(endpoint?: HTTPRequest): Promise<HTTPResponse<any> | void> {
         // Token is required but not available
         if (!this.check().valid) {
             return Promise.resolve();
@@ -222,11 +222,11 @@ export class LocalScheme<OptionsT extends LocalSchemeOptions = LocalSchemeOption
         }
     }
 
-    protected extractToken(response: HTTPResponse): string {
+    protected extractToken(response: HTTPResponse<any>): string {
         return getProp(response._data, this.options.token!.property) as string
     }
 
-    protected updateTokens(response: HTTPResponse): void {
+    protected updateTokens(response: HTTPResponse<any>): void {
         const token = this.options.token?.required ? this.extractToken(response) : true;
 
         this.token.set(token);

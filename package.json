@@ -45,6 +45,7 @@
         "requrl": "^3.0.2"
     },
     "devDependencies": {
+        "@pinia/nuxt": "^0.5.1",
         "@types/node": "^18",
         "nuxt": "^3.8.1",
         "typescript": "^5.2.2",

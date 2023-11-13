@@ -168,7 +168,7 @@ export class Oauth2Scheme<OptionsT extends Oauth2SchemeOptions = Oauth2SchemeOpt
         return response;
     }
 
-    async mounted(): Promise<HTTPResponse | void> {
+    async mounted(): Promise<HTTPResponse<any> | void> {
         const { tokenExpired, refreshTokenExpired } = this.check(true);
 
         // Force reset if refresh token has expired
@@ -432,7 +432,7 @@ export class Oauth2Scheme<OptionsT extends Oauth2SchemeOptions = Oauth2SchemeOpt
         }
     }
 
-    async refreshTokens(): Promise<HTTPResponse | void> {
+    async refreshTokens(): Promise<HTTPResponse<any> | void> {
         // Get refresh token
         const refreshToken = this.refreshToken.get();
 
@@ -473,12 +473,12 @@ export class Oauth2Scheme<OptionsT extends Oauth2SchemeOptions = Oauth2SchemeOpt
             return Promise.reject(error);
         });
 
-        this.updateTokens(response);
+        this.updateTokens(response!);
 
         return response;
     }
 
-    protected updateTokens(response: HTTPResponse): void {
+    protected updateTokens(response: HTTPResponse<any>): void {
         const token = getProp(response._data, this.options.token!.property) as string;
         const refreshToken = getProp(response._data, this.options.refreshToken.property) as string;
 

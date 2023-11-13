@@ -125,7 +125,7 @@ export class Auth {
         this.strategies[name] = strategy;
     }
 
-    async setStrategy(name: string): Promise<HTTPResponse | void> {
+    async setStrategy(name: string): Promise<HTTPResponse<any> | void> {
         if (name === this.$storage.getUniversal('strategy')) {
             return Promise.resolve();
         }
@@ -144,7 +144,7 @@ export class Auth {
         return this.mounted();
     }
 
-    async mounted(...args: any[]): Promise<HTTPResponse | void> {
+    async mounted(...args: any[]): Promise<HTTPResponse<any> | void> {
         if (!this.strategy.mounted) {
             return this.fetchUserOnce();
         }
@@ -157,11 +157,11 @@ export class Auth {
         );
     }
 
-    async loginWith(name: string, ...args: any[]): Promise<HTTPResponse | void> {
+    async loginWith(name: string, ...args: any[]): Promise<HTTPResponse<any> | void> {
         return this.setStrategy(name).then(() => this.login(...args));
     }
 
-    async login(...args: any[]): Promise<HTTPResponse | void> {
+    async login(...args: any[]): Promise<HTTPResponse<any> | void> {
         if (!this.strategy.login) {
             return Promise.resolve();
         }
@@ -174,7 +174,7 @@ export class Auth {
         );
     }
 
-    async fetchUser(...args: any[]): Promise<HTTPResponse | void> {
+    async fetchUser(...args: any[]): Promise<HTTPResponse<any> | void> {
         if (!this.strategy.fetchUser) {
             return Promise.resolve();
         }
@@ -205,7 +205,7 @@ export class Auth {
     // User helpers
     // ---------------------------------------------------------------
 
-    async setUserToken(token: string | boolean, refreshToken?: string | boolean): Promise<HTTPResponse | void> {
+    async setUserToken(token: string | boolean, refreshToken?: string | boolean): Promise<HTTPResponse<any> | void> {
         if (!this.tokenStrategy.setUserToken) {
             this.tokenStrategy.token!.set(token);
             return Promise.resolve();
@@ -229,7 +229,7 @@ export class Auth {
         );
     }
 
-    async refreshTokens(): Promise<HTTPResponse | void> {
+    async refreshTokens(): Promise<HTTPResponse<any> | void> {
         if (!this.refreshStrategy.refreshController) {
             return Promise.resolve();
         }
@@ -248,7 +248,7 @@ export class Auth {
         return this.strategy.check!(...(args as [checkStatus: boolean]));
     }
 
-    async fetchUserOnce(...args: any[]): Promise<HTTPResponse | void> {
+    async fetchUserOnce(...args: any[]): Promise<HTTPResponse<any> | void> {
         if (!this.$state.user) {
             return this.fetchUser(...args);
         }
@@ -274,7 +274,7 @@ export class Auth {
         this.$storage.setState('loggedIn', check.valid);
     }
 
-    async request(endpoint: HTTPRequest, defaults: HTTPRequest = {}): Promise<HTTPResponse | void> {
+    async request(endpoint: HTTPRequest, defaults: HTTPRequest = {}): Promise<HTTPResponse<any>> {
 
         const request = typeof defaults === 'object' ? Object.assign({}, defaults, endpoint) : endpoint;
 
@@ -295,7 +295,7 @@ export class Auth {
         });
     }
 
-    async requestWith(endpoint?: HTTPRequest, defaults?: HTTPRequest): Promise<HTTPResponse | void> {
+    async requestWith(endpoint?: HTTPRequest, defaults?: HTTPRequest): Promise<HTTPResponse<any>> {
         const request = Object.assign({}, defaults, endpoint);
 
         if (this.tokenStrategy.token) {
@@ -315,7 +315,7 @@ export class Auth {
         return this.request(request);
     }
 
-    async wrapLogin(promise: Promise<HTTPResponse | void>): Promise<HTTPResponse | void> {
+    async wrapLogin(promise: Promise<HTTPResponse<any> | void>): Promise<HTTPResponse<any> | void> {
         this.$storage.setState('busy', true);
         this.error = undefined;
 

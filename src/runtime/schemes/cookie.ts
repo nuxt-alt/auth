@@ -60,7 +60,7 @@ export class CookieScheme<OptionsT extends CookieSchemeOptions> extends BaseSche
         this.requestHandler = new RequestHandler(this, this.$auth.ctx.$http);
     }
 
-    async mounted(): Promise<HTTPResponse | void> {
+    async mounted(): Promise<HTTPResponse<any> | void> {
         if (process.server) {
             this.$auth.ctx.$http.setHeader('referer', this.$auth.ctx.ssrContext!.event.node.req.headers.host!);
         }
@@ -92,7 +92,7 @@ export class CookieScheme<OptionsT extends CookieSchemeOptions> extends BaseSche
         return response;
     }
 
-    async login(endpoint: HTTPRequest): Promise<HTTPResponse> {
+    async login(endpoint: HTTPRequest): Promise<HTTPResponse<any> | void> {
         // Ditch any leftover local tokens before attempting to log in
         this.$auth.reset();
 
@@ -125,7 +125,7 @@ export class CookieScheme<OptionsT extends CookieSchemeOptions> extends BaseSche
         return response;
     }
 
-    async fetchUser(endpoint?: HTTPRequest): Promise<HTTPResponse | void> {
+    async fetchUser(endpoint?: HTTPRequest): Promise<HTTPResponse<any> | void> {
         if (!this.check().valid) {
             return Promise.resolve();
         }
