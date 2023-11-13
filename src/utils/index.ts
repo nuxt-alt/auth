@@ -82,9 +82,13 @@ export function decodeValue(val: any): any {
  *
  * @param  { Object } holder   Target object where to look property up
  * @param  { string } propName Dot notation, like 'this.a.b.c'
- * @return { * }          A property value
+ * @return { * } A property value
  */
 export function getProp(holder: any, propName: string | false): any {
+    if (isJSON(holder)) {
+        holder = JSON.parse(holder)
+    }
+
     if (!propName || !holder || typeof holder !== 'object') {
         return holder;
     }
@@ -96,11 +100,23 @@ export function getProp(holder: any, propName: string | false): any {
     const propParts = Array.isArray(propName) ? propName : (propName as string).split('.');
 
     let result = holder;
-    while (propParts.length && result) {
-        result = result[propParts.shift()];
+    for (let part of propParts) {
+        if (result[part] === undefined) {
+            return undefined;
+        }
+        result = result[part];
     }
 
     return result;
+}
+
+function isJSON(str: string) {
+    try {
+        JSON.parse(str);
+    } catch (e) {
+        return false;
+    }
+    return true;
 }
 
 // Ie 'Bearer ' + token

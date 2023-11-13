@@ -47,7 +47,7 @@ export class OpenIDConnectScheme<OptionsT extends OpenIDConnectSchemeOptions = O
 
     protected updateTokens(response: HTTPResponse): void {
         super.updateTokens(response);
-        const idToken = getProp(response, this.options.idToken.property) as string;
+        const idToken = getProp(response._data, this.options.idToken.property) as string;
 
         if (idToken) {
             this.idToken.set(idToken);
@@ -238,9 +238,9 @@ export class OpenIDConnectScheme<OptionsT extends OpenIDConnectSchemeOptions = O
                 }),
             });
 
-            token = (getProp(response, this.options.token!.property) as string) || token;
-            refreshToken = (getProp(response, this.options.refreshToken.property!) as string) || refreshToken!;
-            idToken = (getProp(response, this.options.idToken.property) as string) || idToken;
+            token = (getProp(response._data, this.options.token!.property) as string) || token;
+            refreshToken = (getProp(response._data, this.options.refreshToken.property!) as string) || refreshToken!;
+            idToken = (getProp(response._data, this.options.idToken.property) as string) || idToken;
         }
 
         if (!token || !token.length) {

@@ -186,7 +186,7 @@ export class LocalScheme<OptionsT extends LocalSchemeOptions = LocalSchemeOption
         return this.$auth
             .requestWith(endpoint, this.options.endpoints.user)
             .then((response) => {
-                const userData = getProp(response, this.options.user.property!);
+                const userData = getProp(response._data, this.options.user.property!);
 
                 if (!userData) {
                     const error = new Error(`User Data response does not contain field ${this.options.user.property}`);
@@ -222,8 +222,12 @@ export class LocalScheme<OptionsT extends LocalSchemeOptions = LocalSchemeOption
         }
     }
 
+    protected extractToken(response: HTTPResponse): string {
+        return getProp(response._data, this.options.token!.property) as string
+    }
+
     protected updateTokens(response: HTTPResponse): void {
-        const token = this.options.token?.required ? (getProp(response, this.options.token.property) as string) : true;
+        const token = this.options.token?.required ? this.extractToken(response) : true;
 
         this.token.set(token);
     }

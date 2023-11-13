@@ -200,9 +200,13 @@ export class RefreshScheme<OptionsT extends RefreshSchemeOptions = RefreshScheme
         }
     }
 
+    protected extractRefreshToken(response: HTTPResponse): string {
+        return getProp(response._data, this.options.refreshToken.property) as string
+    }
+
     protected updateTokens(response: HTTPResponse, { isRefreshing = false, updateOnRefresh = true } = {}): void {
-        const token = this.options.token?.required ? (getProp(response, this.options.token.property) as string) : true;
-        const refreshToken = this.options.refreshToken.required ? (getProp(response, this.options.refreshToken.property) as string) : true;
+        const token = this.options.token?.required ? this.extractToken(response) : true;
+        const refreshToken = this.options.refreshToken.required ? this.extractRefreshToken(response) : true;
 
         this.token.set(token);
 

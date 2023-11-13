@@ -31,19 +31,19 @@ export default defineNuxtPlugin({
     async setup(nuxtApp) {
         // Options
         const options = ${JSON.stringify(options.options, null, 2)}
-    
+
         // Create a new Auth instance
         const auth = new Auth(nuxtApp, options)
-    
+
         // Register strategies
         ${options.strategies.map((strategy) => {
             const scheme = options.strategyScheme[strategy.name!]
             const schemeOptions = JSON.stringify(strategy, null, 2)
             return `auth.registerStrategy('${strategy.name}', new ${scheme.as}(auth, defu(useRuntimeConfig()?.public?.auth?.strategies?.['${strategy.name}'], ${schemeOptions})))`
         }).join(';\n')}
-    
+
         nuxtApp.provide('auth', auth)
-    
+
         return auth.init()
         .catch(error => {
             if (process.client) {
@@ -53,7 +53,7 @@ export default defineNuxtPlugin({
                 if (error instanceof ExpiredAuthSessionError) {
                     return
                 }
-    
+
                 console.error('[ERROR] [AUTH]', error)
             }
         })

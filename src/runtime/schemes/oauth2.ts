@@ -341,15 +341,17 @@ export class Oauth2Scheme<OptionsT extends Oauth2SchemeOptions = Oauth2SchemeOpt
             url: this.options.endpoints.userInfo,
         });
 
-        this.$auth.setUser(getProp(response, this.options.user.property!));
+        this.$auth.setUser(getProp(response._data, this.options.user.property!));
     }
 
     async #handleCallback(): Promise<boolean | void> {
         const route = useRoute();
+
         // Handle callback only for specified route
         if (this.$auth.options.redirect && normalizePath(route.path) !== normalizePath(this.$auth.options.redirect.callback)) {
             return;
         }
+
         // Callback flow is not supported in server side
         if (process.server) {
             return;
@@ -369,6 +371,7 @@ export class Oauth2Scheme<OptionsT extends Oauth2SchemeOptions = Oauth2SchemeOpt
         // Validate state
         const state = this.$auth.$storage.getUniversal(this.name + '.state');
         this.$auth.$storage.setUniversal(this.name + '.state', null);
+
         if (state && parsedQuery.state !== state) {
             return;
         }
@@ -384,7 +387,7 @@ export class Oauth2Scheme<OptionsT extends Oauth2SchemeOptions = Oauth2SchemeOpt
             }
 
             const response = await this.$auth.request({
-                method: 'post',
+                method: 'POST',
                 url: this.options.endpoints.token,
                 baseURL: '',
                 headers: {
@@ -401,8 +404,8 @@ export class Oauth2Scheme<OptionsT extends Oauth2SchemeOptions = Oauth2SchemeOpt
                 }),
             });
 
-            token = (getProp(response, this.options.token!.property) as string) || token;
-            refreshToken = (getProp(response, this.options.refreshToken.property) as string) || refreshToken!;
+            token = (getProp(response._data, this.options.token!.property) as string) || token;
+            refreshToken = (getProp(response._data, this.options.refreshToken.property) as string) || refreshToken!;
         }
 
         if (!token || !token.length) {
@@ -476,8 +479,8 @@ export class Oauth2Scheme<OptionsT extends Oauth2SchemeOptions = Oauth2SchemeOpt
     }
 
     protected updateTokens(response: HTTPResponse): void {
-        const token = getProp(response, this.options.token!.property) as string;
-        const refreshToken = getProp(response, this.options.refreshToken.property) as string;
+        const token = getProp(response._data, this.options.token!.property) as string;
+        const refreshToken = getProp(response._data, this.options.refreshToken.property) as string;
 
         this.token.set(token);
 

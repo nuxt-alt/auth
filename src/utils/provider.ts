@@ -27,7 +27,7 @@ export function addAuthorize<SOptions extends StrategyOptions<Oauth2SchemeOption
     strategy.responseType = 'code';
 
     addTemplate({
-        filename: 'auth-addAuthorize.ts',
+        filename: 'auth-authorize.ts',
         write: true,
         getContents: () => authorizeMiddlewareFile({
             endpoint,
@@ -41,8 +41,9 @@ export function addAuthorize<SOptions extends StrategyOptions<Oauth2SchemeOption
     })
 
     addServerHandler({
-        handler: join(nuxt.options.buildDir, 'auth-addAuthorize.ts'),
-        middleware: true,
+        route: endpoint,
+        method: 'post',
+        handler: join(nuxt.options.buildDir, 'auth-authorize.ts'),
     })
 }
 
@@ -73,8 +74,9 @@ export function initializePasswordGrantFlow<SOptions extends StrategyOptions<Ref
     })
 
     addServerHandler({
+        route: endpoint,
+        method: 'post',
         handler: join(nuxt.options.buildDir, 'auth-passwordGrant.ts'),
-        middleware: true,
     })
 }
 
@@ -103,89 +105,72 @@ export function assignAbsoluteEndpoints<SOptions extends StrategyOptions<(LocalS
 }
 
 export function authorizeMiddlewareFile(opt: any): string {
-return `
-import qs from 'querystring'
-import bodyParser from 'body-parser'
-import { defineEventHandler, readBody } from 'h3'
+return `import { defineEventHandler, readBody, createError } from 'h3'
 import { createInstance } from '@refactorjs/ofetch'
 
-// Form data parser
-const formMiddleware = bodyParser.urlencoded({ extended: true })
 const options = ${JSON.stringify(opt)}
 
 export default defineEventHandler(async (event) => {
-    await new Promise<void>((resolve, reject) => {
-        const next = (err?: unknown) => {
-            if (err) {
-                reject(err)
-            } else {
-                resolve()
-            }
-        }
+    const {
+        code,
+        code_verifier: codeVerifier,
+        redirect_uri: redirectUri = options.strategy.redirectUri,
+        response_type: responseType = options.strategy.responseType,
+        grant_type: grantType = options.strategy.grantType,
+        refresh_token: refreshToken
+    } = await readBody(event)
 
-        if (!event.node.req.url.includes(options.endpoint)) {
-            return next()
-        }
-    
-        if (event.node.req.method !== 'POST') {
-            return next()
-        }
-    
-        formMiddleware(event.node.req, event.node.res, async () => {
-            const {
-                code,
-                code_verifier: codeVerifier,
-                redirect_uri: redirectUri = options.strategy.redirectUri,
-                response_type: responseType = options.strategy.responseType,
-                grant_type: grantType = options.strategy.grantType,
-                refresh_token: refreshToken
-            } = await readBody(event)
+    // Grant type is authorization code, but code is not available
+    if (grantType === 'authorization_code' && !code) {
+        return createError({
+            statusCode: 500,
+            message: 'Missing authorization code'
+        })
+    }
 
-            // Grant type is authorization code, but code is not available
-            if (grantType === 'authorization_code' && !code) {
-                return next()
-            }
+    // Grant type is refresh token, but refresh token is not available
+    if (grantType === 'refresh_token' && !refreshToken) {
+        return createError({
+            statusCode: 500,
+            message: 'Missing refresh token'
+        })
+    }
 
-            // Grant type is refresh token, but refresh token is not available
-            if (grantType === 'refresh_token' && !refreshToken) {
-                return next()
-            }
+    let body = {
+        client_id: options.clientID,
+        client_secret: options.clientSecret,
+        refresh_token: refreshToken,
+        grant_type: grantType,
+        response_type: responseType,
+        redirect_uri: redirectUri,
+        audience: options.audience,
+        code_verifier: codeVerifier,
+        code
+    }
 
-            let body: qs.ParsedUrlQueryInput | string = {
-                client_id: options.clientID,
-                client_secret: options.clientSecret,
-                refresh_token: refreshToken,
-                grant_type: grantType,
-                response_type: responseType,
-                redirect_uri: redirectUri,
-                audience: options.audience,
-                code_verifier: codeVerifier,
-                code
-            }
+    const headers = {
+        Accept: 'application/json',
+        'Content-Type': 'application/json'
+    }
 
-            const headers = {
-                Accept: 'application/json',
-                'Content-Type': 'application/json'
-            }
+    if (options.useForms) {
+        // @ts-ignore
+        body = new URLSearchParams(body).toString()
+        headers['Content-Type'] = 'application/x-www-form-urlencoded'
+    }
 
-            if (options.useForms) {
-                body = qs.stringify(body)
-                headers['Content-Type'] = 'application/x-www-form-urlencoded'
-            }
+    const $fetch = createInstance()
 
-            const $fetch = createInstance()
-
-            $fetch.$post(options.tokenEndpoint, {
-                body: body,
-                headers
-            })
-            .then((response) => {
-                event.node.res.end(JSON.stringify(response))
-            })
-            .catch((error) => {
-                event.node.res.statusCode = error.response.status
-                event.node.res.end(JSON.stringify(error.response.data))
-            })
+    await $fetch.post(options.tokenEndpoint, {
+        body: body,
+        headers
+    })
+    .then((response) => event.node.res.end(JSON.stringify(response._data)))
+    .catch((error) => {
+        console.log(error)
+        return createError({
+            statusCode: error.response.status,
+            message: error.response.data,
         })
     })
 })
@@ -193,77 +178,61 @@ export default defineEventHandler(async (event) => {
 }
 
 export function passwordGrantMiddlewareFile(opt: any): string {
-return `
-import requrl from 'requrl'
-import bodyParser from 'body-parser'
-import { defineEventHandler, readBody } from 'h3'
-import { createInstance } from '@refactorjs/ofetch'
+return `import requrl from 'requrl';
+import { defineEventHandler, readBody } from 'h3';
+import { createInstance } from '@refactorjs/ofetch';
 
-// Form data parser
-const formMiddleware = bodyParser.json()
 const options = ${JSON.stringify(opt)}
 
 export default defineEventHandler(async (event) => {
-    await new Promise<void>((resolve, reject) => {
-        const next = (err?: unknown) => {
-            if (err) {
-                reject(err)
-            } else {
-                resolve()
-            }
+    const body = await readBody(event)
+
+    // If \`grant_type\` is not defined, set default value
+    if (!body.grant_type) {
+        body.grant_type = options.strategy.grantType
+    }
+
+    // If \`client_id\` is not defined, set default value
+    if (!body.client_id) {
+        body.grant_type = options.clientId
+    }
+
+    // Grant type is password, but username or password is not available
+    if (body.grant_type === 'password' && (!body.username || !body.password)) {
+        return createError({
+            statusCode: 400,
+            message: 'Invalid username or password'
+        })
+    }
+
+    // Grant type is refresh token, but refresh token is not available
+    if (body.grant_type === 'refresh_token' && !body.refresh_token) {
+        event.respondWith({ status: 400, body: JSON.stringify({ message: 'Refresh token not provided' }) });
+        return createError({
+            statusCode: 400,
+            message: 'Refresh token not provided'
+        })
+    }
+
+    const $fetch = createInstance()
+
+    await $fetch.post(options.tokenEndpoint, {
+        baseURL: requrl(event.node.req),
+        body: {
+            client_id: options.clientId,
+            client_secret: options.clientSecret,
+            ...body
+        },
+        headers: {
+            Accept: 'application/json'
         }
-
-        if (!event.node.req.url.includes(options.endpoint)) {
-            return next()
-        }
-
-        if (event.node.req.method !== 'POST') {
-            return next()
-        }
-
-        formMiddleware(event.node.req, event.node.res, async () => {
-            const body = await readBody(event)
-
-            // If \`grant_type\` is not defined, set default value
-            if (!body.grant_type) {
-                body.grant_type = options.strategy.grantType
-            }
-
-            // If \`client_id\` is not defined, set default value
-            if (!body.client_id) {
-                body.grant_type = options.clientId
-            }
-
-            // Grant type is password, but username or password is not available
-            if (body.grant_type === 'password' && (!body.username || !body.password)) {
-                return next(new Error('Invalid username or password'))
-            }
-
-            // Grant type is refresh token, but refresh token is not available
-            if (body.grant_type === 'refresh_token' && !body.refresh_token) {
-                return next(new Error('Refresh token not provided'))
-            }
-
-            const $fetch = createInstance()
-
-            $fetch.$post(options.tokenEndpoint, {
-                baseURL: requrl(event.node.req),
-                body: {
-                    client_id: options.clientId,
-                    client_secret: options.clientSecret,
-                    ...body
-                },
-                headers: {
-                    Accept: 'application/json'
-                }
-            })
-            .then((response) => {
-                event.node.res.end(JSON.stringify(response))
-            })
-            .catch((error) => {
-                event.node.res.statusCode = error.response.status
-                event.node.res.end(JSON.stringify(error.response.data))
-            })
+    })
+    .then((response) => event.node.res.end(JSON.stringify(response._data)))
+    .catch((error) => {
+        console.log(error)
+        return createError({
+            statusCode: error.response.status,
+            message: error.response.data,
         })
     })
 })

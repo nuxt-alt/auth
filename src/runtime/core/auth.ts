@@ -286,7 +286,7 @@ export class Auth {
             return Promise.reject(new Error('[AUTH] add the @nuxtjs-alt/http module to nuxt.config file'));
         }
 
-        return this.ctx.$http.request(request).catch((error: Error) => {
+        return this.ctx.$http.raw(request).catch((error: Error) => {
             // Call all error handlers
             this.callOnError(error, { method: 'request' });
 

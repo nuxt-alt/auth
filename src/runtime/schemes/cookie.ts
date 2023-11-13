@@ -144,7 +144,7 @@ export class CookieScheme<OptionsT extends CookieSchemeOptions> extends BaseSche
         return this.$auth
             .requestWith(endpoint, this.options.endpoints.user)
             .then((response) => {
-                const userData = getProp(response, this.options.user.property)
+                const userData = getProp(response._data, this.options.user.property)
 
                 if (!userData) {
                     const error = new Error(`User Data response does not contain field ${this.options.user.property}`);
