@@ -283,7 +283,7 @@ export class Auth {
         }
 
         if (!this.ctx.$http) {
-            return Promise.reject(new Error('[AUTH] add the @nuxtjs-alt/http module to nuxt.config file'));
+            return Promise.reject(new Error('[AUTH] add the @nuxt-alt/http module to nuxt.config file'));
         }
 
         return this.ctx.$http.raw(request).catch((error: Error) => {
@@ -350,21 +350,21 @@ export class Auth {
      * @returns
      */
     redirect(name: string, route: Route | false = false, router: boolean = true) {
-        const currentRoute = useRoute();
-        const currentRouter = useRouter();
-
         if (!this.options.redirect) {
             return;
         }
-
-        const nuxtRoute = this.options.fullPathRedirect ? currentRoute.fullPath : currentRoute.path
-        const from = route ? (this.options.fullPathRedirect ? route.fullPath : route.path) : nuxtRoute;
 
         let to: string = this.options.redirect[name as keyof typeof this.options.redirect];
 
         if (!to) {
             return;
         }
+
+        const currentRoute = useRoute();
+        const currentRouter = useRouter();
+
+        const nuxtRoute = this.options.fullPathRedirect ? currentRoute.fullPath : currentRoute.path
+        const from = route ? (this.options.fullPathRedirect ? route.fullPath : route.path) : nuxtRoute;
 
         const queryReturnTo = currentRoute.query.to;
 
@@ -407,7 +407,7 @@ export class Auth {
             }
         }
 
-        if (!router || !isRelativeURL(to)) {
+        if (process.client && (!router || !isRelativeURL(to))) {
             window.location.replace(to);
         }
         else {

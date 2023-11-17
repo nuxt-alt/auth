@@ -1,6 +1,6 @@
 import type { HTTPRequest, HTTPResponse } from '.';
 import type { Auth } from '../runtime/core';
-import type { Token, IdToken, RefreshToken, RefreshController, RequestHandler,} from '../runtime/inc';
+import type { Token, IdToken, RefreshToken, RefreshController, RequestHandler } from '../runtime/inc';
 import type { PartialExcept } from './utils';
 
 export interface UserOptions {
@@ -37,14 +37,14 @@ export interface Scheme<OptionsT extends SchemeOptions = SchemeOptions> {
     options: OptionsT;
     name?: string;
     $auth: Auth;
-    mounted?(...args: any[]): Promise<HTTPResponse | void>;
+    mounted?(...args: any[]): Promise<HTTPResponse<any> | void>;
     check?(checkStatus: boolean): SchemeCheck;
-    login(...args: any[]): Promise<HTTPResponse | void>;
-    fetchUser(endpoint?: HTTPRequest): Promise<HTTPResponse | void>;
+    login(...args: any[]): Promise<HTTPResponse<any> | void>;
+    fetchUser(endpoint?: HTTPRequest): Promise<HTTPResponse<any> | void>;
     setUserToken?(
         token: string | boolean,
         refreshToken?: string | boolean
-    ): Promise<HTTPResponse | void>;
+    ): Promise<HTTPResponse<any> | void>;
     logout?(endpoint?: HTTPRequest): Promise<void> | void;
     reset?(options?: { resetInterceptor: boolean }): void;
 }
@@ -103,5 +103,5 @@ export interface RefreshableSchemeOptions extends TokenableSchemeOptions {
 export interface RefreshableScheme<OptionsT extends RefreshableSchemeOptions = RefreshableSchemeOptions> extends TokenableScheme<OptionsT> {
     refreshToken: RefreshToken;
     refreshController: RefreshController;
-    refreshTokens(): Promise<HTTPResponse | void>;
+    refreshTokens(): Promise<HTTPResponse<any> | void>;
 }

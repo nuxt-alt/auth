@@ -194,6 +194,7 @@ export class LocalScheme<OptionsT extends LocalSchemeOptions = LocalSchemeOption
                 }
 
                 this.$auth.setUser(userData);
+
                 return response;
             })
             .catch((error) => {
