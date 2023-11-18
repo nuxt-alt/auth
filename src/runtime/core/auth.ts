@@ -90,11 +90,11 @@ export class Auth {
         }
 
         // Restore strategy
-        this.$storage.syncUniversal('strategy', this.options.defaultStrategy, { cookie: false });
+        this.$storage.syncUniversal('strategy', this.options.defaultStrategy, { cookie: this.loggedIn ? true : false });
 
         // Set default strategy if current one is invalid
         if (!this.getStrategy(false)) {
-            this.$storage.setUniversal('strategy', this.options.defaultStrategy, { cookie: false });
+            this.$storage.setUniversal('strategy', this.options.defaultStrategy, { cookie: this.loggedIn ? true : false });
 
             // Give up if still invalid
             if (!this.getStrategy(false)) {
@@ -138,7 +138,7 @@ export class Auth {
         this.reset();
 
         // Set new strategy
-        this.$storage.setUniversal('strategy', name, { cookie: false });
+        this.$storage.setUniversal('strategy', name, { cookie: this.loggedIn ? true : false });
 
         // Call mounted hook on active strategy
         return this.mounted();
@@ -162,6 +162,8 @@ export class Auth {
     }
 
     async login(...args: any[]): Promise<HTTPResponse<any> | void> {
+        this.$storage.syncUniversal('strategy', this.strategy.name)
+
         if (!this.strategy.login) {
             return Promise.resolve();
         }
@@ -188,6 +190,8 @@ export class Auth {
     }
 
     async logout(...args: any[]): Promise<void> {
+        this.$storage.removeCookie('strategy')
+
         if (!this.strategy.logout) {
             this.reset();
             return Promise.resolve();
