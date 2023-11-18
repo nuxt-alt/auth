@@ -1,4 +1,4 @@
-import type { ModuleOptions, AuthStoreDefinition, AuthState } from '../../types';
+import type { ModuleOptions, AuthStoreDefinition, AuthState, StoreMethod, StoreIncludeOptions } from '../../types';
 import type { NuxtApp } from '#app';
 import { isUnset, isSet, decodeValue, encodeValue, setH3Cookie } from '../../utils';
 import { defineStore, type Pinia } from 'pinia';
@@ -24,20 +24,20 @@ export class Storage {
     // Universal
     // ------------------------------------
 
-    setUniversal<V extends any>(key: string, value: V): V | void {
+    setUniversal<V extends any>(key: string, value: V, include: StoreIncludeOptions = { cookie: true, session: true, local: true }): V | void {
         // Unset null, undefined
         if (isUnset(value)) {
             return this.removeUniversal(key);
         }
 
-        // Cookies
-        this.setCookie(key, value);
+        // Set in all included stores
+        const storeMethods: Record<StoreMethod, Function> = {
+            cookie: (k: string, v: any) => this.setCookie(k, v),
+            session: (k: string, v: any) => this.setSessionStorage(k, v),
+            local: (k: string, v: any) => this.setLocalStorage(k, v)
+        }
 
-        // Local Storage
-        this.setLocalStorage(key, value);
-
-        // Session Storage
-        this.setSessionStorage(key, value);
+        Object.entries(include).filter(([_, shouldInclude]) => shouldInclude).forEach(([method, _]) => storeMethods[method as StoreMethod]?.(key, value));
 
         // Local state
         this.setState(key, value);
@@ -46,34 +46,23 @@ export class Storage {
     }
 
     getUniversal(key: string): any {
-        let value: any;
+        const sourceOrder = [
+            () => this.getCookie(key),
+            () => this.getLocalStorage(key),
+            () => this.getSessionStorage(key),
+            () => this.getState(key),
+        ];
 
-        // Local state
         if (process.server) {
-            value = this.getState(key);
+            sourceOrder.unshift(() => this.getState(key));
         }
 
-        // Cookies
-        if (isUnset(value)) {
-            value = this.getCookie(key);
+        for (let getter of sourceOrder) {
+            const value = getter();
+            if (!isUnset(value)) {
+                return value;
+            }
         }
-
-        // Local Storage
-        if (isUnset(value)) {
-            value = this.getLocalStorage(key);
-        }
-
-        // Session Storage
-        if (isUnset(value)) {
-            value = this.getSessionStorage(key);
-        }
-
-        // Local state
-        if (isUnset(value)) {
-            value = this.getState(key);
-        }
-
-        return value;
     }
 
     syncUniversal(key: string, defaultValue?: any): any {
@@ -182,23 +171,17 @@ export class Storage {
     // ------------------------------------
 
     setLocalStorage<V extends any>(key: string, value: V): V | void {
-        // Unset null, undefined
         if (isUnset(value)) {
             return this.removeLocalStorage(key);
         }
 
-        if (!this.isLocalStorageEnabled()) {
-            return;
-        }
-
-        const $key = this.getLocalStoragePrefix() + key;
+        if (!this.isLocalStorageEnabled()) return;
 
         try {
-            localStorage.setItem($key, encodeValue(value));
+            const prefixedKey = `${this.getLocalStoragePrefix()}${key}`;
+            localStorage.setItem(prefixedKey, encodeValue(value));
         } catch (e) {
-            if (!this.options.ignoreExceptions) {
-                throw e;
-            }
+            if (!this.options.ignoreExceptions) throw e;
         }
 
         return value;
@@ -209,11 +192,9 @@ export class Storage {
             return;
         }
 
-        const $key = this.getLocalStoragePrefix() + key;
+        const prefixedKey = `${this.getLocalStoragePrefix()}${key}`;
 
-        const value = localStorage.getItem($key);
-
-        return decodeValue(value);
+        return decodeValue(localStorage.getItem(prefixedKey));
     }
 
     removeLocalStorage(key: string): void {
@@ -221,9 +202,9 @@ export class Storage {
             return;
         }
 
-        const $key = this.getLocalStoragePrefix() + key;
+        const prefixedKey = `${this.getLocalStoragePrefix()}${key}`;
 
-        localStorage.removeItem($key);
+        localStorage.removeItem(prefixedKey);
     }
 
     getLocalStoragePrefix(): string {
@@ -235,31 +216,23 @@ export class Storage {
     }
 
     isLocalStorageEnabled(): boolean {
-        // Disabled by configuration
-        if (!this.options.localStorage) {
-            return false;
-        }
+        const isNotServer = !process.server;
+        const isConfigEnabled = !!this.options.localStorage;
+        const localTest = "test";
 
-        // Local Storage only exists in the browser
-        if (process.server) {
-            return false;
-        }
-
-        // There's no great way to check if localStorage is enabled; most solutions
-        // error out. So have to use this hacky approach :\
-        // https://stackoverflow.com/questions/16427636/check-if-localstorage-is-available
-        const test = 'test';
-
-        try {
-            localStorage.setItem(test, test);
-            localStorage.removeItem(test);
-            return true;
-        } catch (e) {
-            if (!this.options.ignoreExceptions) {
-                console.warn('[AUTH] Local storage is enabled in config, but the browser does not support it.');
+        if (isNotServer && isConfigEnabled) {
+            try {
+                localStorage.setItem(localTest, localTest);
+                localStorage.removeItem(localTest);
+                return true;
+            } catch (e) {
+                if (!this.options.ignoreExceptions) {
+                    console.warn('[AUTH] Local storage is enabled in config, but the browser does not support it.');
+                }
             }
-            return false;
         }
+
+        return false;
     }
 
     // ------------------------------------
@@ -267,26 +240,20 @@ export class Storage {
     // ------------------------------------
 
     setSessionStorage<V extends any>(key: string, value: V): V | void {
-        // Unset null, undefined
         if (isUnset(value)) {
             return this.removeSessionStorage(key)
         }
-    
-        if (!this.isSessionStorageEnabled()) {
-            return
-        }
-    
-        const $key = this.getSessionStoragePrefix() + key
-    
+
+        if (!this.isSessionStorageEnabled()) return;
+
         try {
-            sessionStorage.setItem($key, encodeValue(value))
+            const prefixedKey = `${this.getSessionStoragePrefix()}${key}`;
+            sessionStorage.setItem(prefixedKey, encodeValue(value));
         } catch (e) {
-            if (!this.options.ignoreExceptions) {
-                throw e
-            }
+            if (!this.options.ignoreExceptions) throw e;
         }
-    
-        return value  
+
+        return value;
     }
 
     getSessionStorage(key: string): any {
@@ -320,28 +287,23 @@ export class Storage {
     }
 
     isSessionStorageEnabled(): boolean {
-        // Disabled by configuration
-        if (!this.options.sessionStorage) {
-            return false
-        }
+        const isNotServer = !process.server;
+        const isConfigEnabled = !!this.options.sessionStorage;
+        const testKey = "test";
 
-        // Session Storage only exists in the browser
-        if (process.server) {
-            return false
-        }
-
-        // There is no proper way to check if the sessionStorage is available, same as with the localStorage.
-        const test = 'test'
-        try {
-            sessionStorage.setItem(test, test)
-            sessionStorage.removeItem(test)
-            return true
-        } catch (e) {
-            if (!this.options.ignoreExceptions) {
-                console.warn('[AUTH] Session storage is enabled in config, but the browser does not support it.')
+        if (isNotServer && isConfigEnabled) {
+            try {
+                sessionStorage.setItem(testKey, testKey);
+                sessionStorage.removeItem(testKey);
+                return true;
+            } catch (e) {
+                if (!this.options.ignoreExceptions) {
+                    console.warn('[AUTH] Session storage is enabled in config, but the browser does not support it.');
+                }
             }
-            return false
         }
+
+        return false;
     }
 
     // ------------------------------------
@@ -353,23 +315,22 @@ export class Storage {
             return;
         }
 
-        const prefix = options.prefix !== undefined ? options.prefix : this.options.cookie.prefix;
-        const $key = prefix + key;
-        const $options = Object.assign({}, this.options.cookie.options, options);
+        const prefix = options.prefix ?? this.options.cookie.prefix;
+        const $key = `${prefix}${key}`;
         const $value = encodeValue(value);
+        const $options = { ...this.options.cookie.options, ...options };
 
         // Unset null, undefined
         if (isUnset(value)) {
             $options.maxAge = -1;
         }
 
-        const serializedCookie = serialize($key, $value, $options);
+        const cookieString = serialize($key, $value, $options);
 
         if (process.client) {
-            document.cookie = serializedCookie;
-        }
-        else if (process.server && this.ctx.ssrContext!.event.node.res) {
-            setH3Cookie(this.ctx.ssrContext!.event, serializedCookie)
+            document.cookie = cookieString;
+        } else if (process.server && this.ctx.ssrContext?.event.node.res) {
+            setH3Cookie(this.ctx.ssrContext.event, cookieString);
         }
     }
 
@@ -399,22 +360,14 @@ export class Storage {
     }
 
     isCookiesEnabled(): boolean {
-        // Disabled by configuration
-        if (!this.options.cookie) {
-            return false;
-        }
-
-        // Server can only assume cookies are enabled, it's up to the client browser
-        // to create them or not
-        if (process.server) {
-            return true;
-        }
-
-        if (window.navigator.cookieEnabled) {
-            return true;
-        } else {
+        const isNotClient = process.server;
+        const isConfigEnabled = !!this.options.cookie;
+    
+        if (isConfigEnabled) {
+            if (isNotClient || window.navigator.cookieEnabled) return true;
             console.warn('[AUTH] Cookies are enabled in config, but the browser does not support it.');
-            return false;
         }
+
+        return false;
     }
 }

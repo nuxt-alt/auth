@@ -28,6 +28,14 @@ export type AuthStoreDefinition = Store<string, AuthState, {}, {
     SET(payload: any): void;
 }>
 
+export type StoreMethod = 'cookie' | 'session' | 'local';
+
+export interface StoreIncludeOptions {
+    cookie?: boolean;
+    session?: boolean;
+    local?: boolean;
+}
+
 export interface UserInfo {
     [key: string]: unknown;
 }

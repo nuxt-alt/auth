@@ -138,7 +138,7 @@ export class Auth {
         this.reset();
 
         // Set new strategy
-        this.$storage.setUniversal('strategy', name);
+        this.$storage.setUniversal('strategy', name, { cookie: false });
 
         // Call mounted hook on active strategy
         return this.mounted();
