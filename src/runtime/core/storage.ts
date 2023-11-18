@@ -32,12 +32,12 @@ export class Storage {
 
         // Set in all included stores
         const storeMethods: Record<StoreMethod, Function> = {
-            cookie: (k: string, v: any) => this.setCookie(k, v),
-            session: (k: string, v: any) => this.setSessionStorage(k, v),
-            local: (k: string, v: any) => this.setLocalStorage(k, v)
+            cookie: (k: string, v: V) => this.setCookie(k, v),
+            session: (k: string, v: V) => this.setSessionStorage(k, v),
+            local: (k: string, v: V) => this.setLocalStorage(k, v)
         }
 
-        Object.entries(include).filter(([_, shouldInclude]) => shouldInclude).forEach(([method, _]) => storeMethods[method as StoreMethod]?.(key, value));
+        Object.entries(include).filter(([_, shouldInclude]) => shouldInclude).forEach(([method]) => storeMethods[method as StoreMethod]?.(key, value));
 
         // Local state
         this.setState(key, value);
@@ -65,7 +65,7 @@ export class Storage {
         }
     }
 
-    syncUniversal(key: string, defaultValue?: any): any {
+    syncUniversal(key: string, defaultValue?: any, include: StoreIncludeOptions = { cookie: true, session: true, local: true }): any {
         let value = this.getUniversal(key);
 
         if (isUnset(value) && isSet(defaultValue)) {
@@ -73,7 +73,7 @@ export class Storage {
         }
 
         if (isSet(value)) {
-            this.setUniversal(key, value);
+            this.setUniversal(key, value, include);
         }
 
         return value;
@@ -119,10 +119,6 @@ export class Storage {
     }
 
     get store() {
-        return this.#initStore;
-    }
-
-    getStore() {
         return this.#initStore;
     }
 
