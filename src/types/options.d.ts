@@ -18,27 +18,38 @@ export interface ModuleOptions {
     redirectStrategy?: 'query' | 'storage';
     routerStrategy?: string;
     scopeKey: string;
+    stores: Partial<{
+        pinia: {
+            enabled: boolean;
+            namespace?: string;
+        };
+        cookie: {
+            enabled: boolean;
+            prefix?: string;
+            options?: {
+                path?: string;
+                expires?: Date;
+                maxAge?: number;
+                domain?: string;
+                secure?: boolean;
+                sameSite?: 'strict' | 'lax' | 'none';
+                httpOnly?: boolean;
+            };
+        };
+        local: { 
+            enabled: boolean;
+            prefix?: string; 
+        };
+        session: { 
+            enabled: boolean;
+            prefix?: string;
+        };
+    }>,
     redirect: {
         login: string;
         logout: string;
         callback: string;
         home: string;
     };
-    pinia: {
-        namespace: string;
-    };
-    cookie: {
-        prefix?: string;
-        options?: {
-            path?: string;
-            expires?: Date;
-            maxAge?: number;
-            domain?: string;
-            secure?: boolean;
-            sameSite?: 'strict' | 'lax' | 'none';
-        };
-    };
-    localStorage: { prefix: string; } | false;
-    sessionStorage: { prefix: string; } | false;
     initialState?: AuthState;
 }

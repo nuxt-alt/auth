@@ -35,31 +35,26 @@ export const moduleDefaults: ModuleOptions = {
         callback: '/login',
     },
 
-    //  -- Pinia Store --
-
-    pinia: {
-        namespace: 'auth',
-    },
-
-    // -- Cookie Store --
-
-    cookie: {
-        prefix: 'auth.',
-        options: {
-            path: '/',
+    stores: {
+        pinia: {
+            enabled: false,
+            namespace: 'auth',
         },
-    },
-
-    // -- localStorage Store --
-
-    localStorage: {
-        prefix: 'auth.',
-    },
-
-    // -- sessionStorage Store --
-
-    sessionStorage: {
-        prefix: 'auth.',
+        cookie: {
+            enabled: true,
+            prefix: 'auth.',
+            options: {
+                path: '/',
+            },
+        },
+        local: {
+            enabled: false,
+            prefix: 'auth.',
+        },
+        session: {
+            enabled: false,
+            prefix: 'auth.',
+        }, 
     },
 
     // -- Strategies --

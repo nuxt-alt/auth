@@ -2,6 +2,7 @@ import type { ModuleOptions } from './options';
 import type { Auth } from '../runtime';
 import type { Store, Pinia, StoreGeneric } from 'pinia';
 import * as NuxtSchema from '@nuxt/schema';
+import type { CookieSerializeOptions } from 'cookie-es';
 
 export * from './openIDConnectConfigurationDocument';
 export * from './provider';
@@ -31,7 +32,7 @@ export type AuthStoreDefinition = Store<string, AuthState, {}, {
 export type StoreMethod = 'cookie' | 'session' | 'local';
 
 export interface StoreIncludeOptions {
-    cookie?: boolean;
+    cookie?: boolean | CookieSerializeOptions;
     session?: boolean;
     local?: boolean;
 }

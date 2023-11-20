@@ -2,20 +2,25 @@ import type { ModuleOptions, AuthStoreDefinition, AuthState, StoreMethod, StoreI
 import type { NuxtApp } from '#app';
 import { isUnset, isSet, decodeValue, encodeValue, setH3Cookie } from '../../utils';
 import { defineStore, type Pinia } from 'pinia';
-import { parse, serialize } from 'cookie-es';
+import { parse, serialize, type CookieSerializeOptions } from 'cookie-es';
+import { useState } from '#imports';
+import { watch } from 'vue';
 
 export class Storage {
     ctx: NuxtApp;
     options: ModuleOptions;
-    #store!: AuthStoreDefinition;
-    #initStore!: AuthStoreDefinition;
-    state: AuthState = {};
-    #state: AuthState = {};
+    #PiniaStore!: AuthStoreDefinition;
+    #PiniaInitStore!: AuthStoreDefinition;
+    #initStore?: Ref<AuthState>;
+    state: AuthState;
+    #state: AuthState;
     #piniaEnabled: boolean = false;
 
     constructor(ctx: NuxtApp, options: ModuleOptions) {
         this.ctx = ctx;
         this.options = options;
+        this.state = options.initialState!
+        this.#state = options.initialState!
 
         this.#initState();
     }
@@ -32,12 +37,18 @@ export class Storage {
 
         // Set in all included stores
         const storeMethods: Record<StoreMethod, Function> = {
-            cookie: (k: string, v: V) => this.setCookie(k, v),
+            cookie: (k: string, v: V, o: CookieSerializeOptions) => this.setCookie(k, v, o),
             session: (k: string, v: V) => this.setSessionStorage(k, v),
             local: (k: string, v: V) => this.setLocalStorage(k, v)
         }
 
-        Object.entries(include).filter(([_, shouldInclude]) => shouldInclude).forEach(([method]) => storeMethods[method as StoreMethod]?.(key, value));
+        Object.entries(include).filter(([_, shouldInclude]) => shouldInclude).forEach(([method, opts]) => {
+            if (method === 'cookie' && typeof opts === 'object') {
+                return storeMethods[method as StoreMethod]?.(key, value, opts)
+            }
+
+            return storeMethods[method as StoreMethod]?.(key, value)
+        });
 
         // Local state
         this.setState(key, value);
@@ -73,7 +84,7 @@ export class Storage {
         }
 
         if (isSet(value)) {
-            this.setUniversal(key, value, include);
+            this.getCookie(key) ? this.setUniversal(key, value, { ...include, cookie: false }) : this.setUniversal(key, value, include);
         }
 
         return value;
@@ -90,17 +101,13 @@ export class Storage {
     // Local state (reactive)
     // ------------------------------------
 
-    #initState(): void {
-        // Private state is suitable to keep information not being exposed to pinia store
-        // This helps prevent stealing token from SSR response HTML
-        this.#state = {};
-
+    async #initState() {
         // Use pinia for local state's if possible
         const pinia = this.ctx.$pinia as Pinia
-        this.#piniaEnabled = this.options.pinia && !!pinia;
+        this.#piniaEnabled = this.options.stores.pinia!.enabled && !!pinia;
 
         if (this.#piniaEnabled) {
-            this.#store = defineStore(this.options.pinia.namespace, {
+            this.#PiniaStore = defineStore(this.options.stores.pinia?.namespace!, {
                 state: () => ({ ...this.options.initialState }),
                 actions: {
                     SET(payload: any) {
@@ -109,17 +116,19 @@ export class Storage {
                 }
             }) as unknown as AuthStoreDefinition;
 
-            this.#initStore = this.#store(pinia);
-            this.state = this.#initStore.$state;
+            this.#PiniaInitStore = this.#PiniaStore(pinia);
+            this.state = this.#PiniaInitStore.$state;
         } else {
-            this.state = {};
+            this.#initStore = useState<AuthState>('auth', () => ({
+                ...this.options.initialState
+            }))
 
-            console.warn('[AUTH] The pinia store is not activated. This might cause issues in auth module behavior, like redirects not working properly. To activate it, please install it and add it to your config after this module');
+            this.state = this.#initStore.value
         }
     }
 
     get store() {
-        return this.#initStore;
+        return this.#piniaEnabled ? this.#PiniaInitStore : this.#initStore;
     }
 
     setState(key: string, value: any) {
@@ -127,7 +136,7 @@ export class Storage {
             this.#state[key] = value;
         }
         else if (this.#piniaEnabled) {
-            const { SET } = this.#initStore;
+            const { SET } = this.#PiniaInitStore;
             SET({ key, value });
         }
         else {
@@ -147,7 +156,7 @@ export class Storage {
 
     watchState(watchKey: string, fn: (value: any) => void) {
         if (this.#piniaEnabled) {
-            return this.#initStore.$onAction((context) => {
+            return this.#PiniaInitStore.$onAction((context) => {
                 if (context.name === 'SET') {
                     const { key, value } = context.args[0];
                     if (watchKey === key) {
@@ -155,6 +164,12 @@ export class Storage {
                     }
                 }
             });
+        } else {
+            watch(() => ({ ...this.#initStore!.value }), (modified, old) => {
+                if (watchKey in modified) {
+                    fn(modified[watchKey])
+                }
+            })
         }
     }
 
@@ -174,7 +189,7 @@ export class Storage {
         if (!this.isLocalStorageEnabled()) return;
 
         try {
-            const prefixedKey = `${this.getLocalStoragePrefix()}${key}`;
+            const prefixedKey = `${this.options.stores.local?.prefix}${key}`;
             localStorage.setItem(prefixedKey, encodeValue(value));
         } catch (e) {
             if (!this.options.ignoreExceptions) throw e;
@@ -188,7 +203,7 @@ export class Storage {
             return;
         }
 
-        const prefixedKey = `${this.getLocalStoragePrefix()}${key}`;
+        const prefixedKey = `${this.options.stores.local?.prefix}${key}`;
 
         return decodeValue(localStorage.getItem(prefixedKey));
     }
@@ -198,22 +213,14 @@ export class Storage {
             return;
         }
 
-        const prefixedKey = `${this.getLocalStoragePrefix()}${key}`;
+        const prefixedKey = `${this.options.stores.local?.prefix}${key}`;
 
         localStorage.removeItem(prefixedKey);
     }
 
-    getLocalStoragePrefix(): string {
-        if (!this.options.localStorage) {
-            throw new Error('Cannot get prefix; localStorage is off');
-        }
-
-        return this.options.localStorage.prefix;
-    }
-
     isLocalStorageEnabled(): boolean {
         const isNotServer = !process.server;
-        const isConfigEnabled = !!this.options.localStorage;
+        const isConfigEnabled = this.options.stores.local?.enabled;
         const localTest = "test";
 
         if (isNotServer && isConfigEnabled) {
@@ -243,7 +250,7 @@ export class Storage {
         if (!this.isSessionStorageEnabled()) return;
 
         try {
-            const prefixedKey = `${this.getSessionStoragePrefix()}${key}`;
+            const prefixedKey = `${this.options.stores!.session!.prefix}${key}`;
             sessionStorage.setItem(prefixedKey, encodeValue(value));
         } catch (e) {
             if (!this.options.ignoreExceptions) throw e;
@@ -257,9 +264,9 @@ export class Storage {
             return
         }
 
-        const $key = this.getSessionStoragePrefix() + key
+        const prefixedKey = this.options.stores!.session!.prefix + key
 
-        const value = sessionStorage.getItem($key)
+        const value = sessionStorage.getItem(prefixedKey)
 
         return decodeValue(value)
     }
@@ -269,22 +276,15 @@ export class Storage {
             return
         }
 
-        const $key = this.getSessionStoragePrefix() + key
+        const prefixedKey = this.options.stores!.session!.prefix + key
 
-        sessionStorage.removeItem($key)
-    }
-
-    getSessionStoragePrefix(): string {
-        if (!this.options.sessionStorage) {
-            throw new Error('Cannot get prefix; sessionStorage is off');
-        }
-
-        return this.options.sessionStorage.prefix;
+        sessionStorage.removeItem(prefixedKey)
     }
 
     isSessionStorageEnabled(): boolean {
         const isNotServer = !process.server;
-        const isConfigEnabled = !!this.options.sessionStorage;
+        // @ts-ignore
+        const isConfigEnabled = this.options.stores!.session?.enabled;
         const testKey = "test";
 
         if (isNotServer && isConfigEnabled) {
@@ -303,25 +303,25 @@ export class Storage {
     }
 
     // ------------------------------------
-    // Cookies
+    // Cookie Storage
     // ------------------------------------
 
-    setCookie<V extends any>(key: string, value: V, options: ModuleOptions['cookie'] = {}) {
+    setCookie<V extends any>(key: string, value: V, options: CookieSerializeOptions = {}) {
         if (!this.isCookiesEnabled()) {
             return;
         }
 
-        const prefix = options.prefix ?? this.options.cookie.prefix;
-        const $key = `${prefix}${key}`;
+        const prefix = this.options.stores!.cookie?.prefix;
+        const prefixedKey = `${prefix}${key}`;
         const $value = encodeValue(value);
-        const $options = { ...this.options.cookie.options, ...options };
+        const $options = { ...this.options.stores.cookie?.options, ...options };
 
         // Unset null, undefined
         if (isUnset(value)) {
             $options.maxAge = -1;
         }
 
-        const cookieString = serialize($key, $value, $options);
+        const cookieString = serialize(prefixedKey, $value, $options);
 
         if (process.client) {
             document.cookie = cookieString;
@@ -345,20 +345,20 @@ export class Storage {
             return;
         }
 
-        const $key = this.options.cookie.prefix + key;
+        const prefixedKey = this.options.stores.cookie?.prefix + key;
         const cookies = this.getCookies();
 
-        return decodeValue(cookies![$key] ? decodeURIComponent(cookies![$key] as string) : undefined)
+        return decodeValue(cookies![prefixedKey] ? decodeURIComponent(cookies![prefixedKey] as string) : undefined)
     }
 
-    removeCookie(key: string, options?: ModuleOptions['cookie']): void {
+    removeCookie(key: string, options?: CookieSerializeOptions): void {
         this.setCookie(key, undefined, options);
     }
 
     isCookiesEnabled(): boolean {
         const isNotClient = process.server;
-        const isConfigEnabled = !!this.options.cookie;
-    
+        const isConfigEnabled = this.options.stores.cookie?.enabled;
+
         if (isConfigEnabled) {
             if (isNotClient || window.navigator.cookieEnabled) return true;
             console.warn('[AUTH] Cookies are enabled in config, but the browser does not support it.');

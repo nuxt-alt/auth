@@ -2,7 +2,6 @@ import type { EndpointsOption, SchemePartialOptions, SchemeCheck, CookieUserOpti
 import type { Auth } from '..';
 import { BaseScheme } from './base';
 import { getProp } from '../../utils';
-import { RequestHandler } from '../inc';
 
 export interface CookieSchemeEndpoints extends EndpointsOption {
     login: HTTPRequest;
@@ -50,14 +49,10 @@ const DEFAULTS: SchemePartialOptions<CookieSchemeOptions> = {
 };
 
 export class CookieScheme<OptionsT extends CookieSchemeOptions> extends BaseScheme<OptionsT> {
-    requestHandler: RequestHandler;
     checkStatus: boolean = false;
 
     constructor($auth: Auth, options: SchemePartialOptions<CookieSchemeOptions>, ...defaults: SchemePartialOptions<CookieSchemeOptions>[]) {
         super($auth, options as OptionsT, ...(defaults as OptionsT[]), DEFAULTS as OptionsT);
-
-        // Initialize Request Interceptor
-        this.requestHandler = new RequestHandler(this, this.$auth.ctx.$http);
     }
 
     async mounted(): Promise<HTTPResponse<any> | void> {
@@ -66,9 +61,6 @@ export class CookieScheme<OptionsT extends CookieSchemeOptions> extends BaseSche
         }
 
         this.checkStatus = true;
-
-        // Initialize request interceptor
-        this.initializeRequestInterceptor();
 
         return this.$auth.fetchUserOnce();
     }
@@ -107,11 +99,6 @@ export class CookieScheme<OptionsT extends CookieSchemeOptions> extends BaseSche
 
         // Make login request
         const response = await this.$auth.request(endpoint, this.options.endpoints.login);
-
-        // Initialize request interceptor if not initialized
-        if (!this.requestHandler.interceptor) {
-            this.initializeRequestInterceptor();
-        }
 
         // Fetch user if `autoFetch` is enabled
         if (this.options.user.autoFetch) {
@@ -173,21 +160,11 @@ export class CookieScheme<OptionsT extends CookieSchemeOptions> extends BaseSche
         return this.$auth.reset();
     }
 
-    reset({ resetInterceptor = true } = {}): void {
+    reset(): void {
         if (this.options.cookie.name) {
-            this.$auth.$storage.setCookie(this.options.cookie.name, null, {
-                prefix: '',
-            });
+            this.$auth.$storage.setCookie(this.options.cookie.name, null);
         }
 
         this.$auth.setUser(false);
-
-        if (resetInterceptor) {
-            this.requestHandler.reset();
-        }
-    }
-
-    initializeRequestInterceptor(): void {
-        this.requestHandler.initializeRequestInterceptor();
     }
 }

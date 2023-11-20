@@ -90,11 +90,11 @@ export class Auth {
         }
 
         // Restore strategy
-        this.$storage.syncUniversal('strategy', this.options.defaultStrategy, { cookie: this.loggedIn ? true : false });
+        this.$storage.syncUniversal('strategy', this.options.defaultStrategy, { cookie: this.$state.loggedIn });
 
         // Set default strategy if current one is invalid
         if (!this.getStrategy(false)) {
-            this.$storage.setUniversal('strategy', this.options.defaultStrategy, { cookie: this.loggedIn ? true : false });
+            this.$storage.setUniversal('strategy', this.options.defaultStrategy, { cookie: this.$state.loggedIn });
 
             // Give up if still invalid
             if (!this.getStrategy(false)) {
@@ -108,16 +108,6 @@ export class Auth {
         }
         catch (error: any) {
             this.callOnError(error);
-        }
-        finally {
-            if (process.client && this.options.watchLoggedIn) {
-                this.$storage.watchState('loggedIn', (loggedIn: boolean) => {
-                    if (this.$state.loggedIn === loggedIn) return;
-                    if (hasOwn(useRoute().meta, 'auth') && !routeMeta(useRoute(), 'auth', false)) {
-                        this.redirect(loggedIn ? 'home' : 'logout');
-                    }
-                });
-            }
         }
     }
 
@@ -138,7 +128,7 @@ export class Auth {
         this.reset();
 
         // Set new strategy
-        this.$storage.setUniversal('strategy', name, { cookie: this.loggedIn ? true : false });
+        this.$storage.setUniversal('strategy', name, { cookie: this.$state.loggedIn });
 
         // Call mounted hook on active strategy
         return this.mounted();
@@ -162,8 +152,6 @@ export class Auth {
     }
 
     async login(...args: any[]): Promise<HTTPResponse<any> | void> {
-        this.$storage.syncUniversal('strategy', this.strategy.name)
-
         if (!this.strategy.login) {
             return Promise.resolve();
         }
