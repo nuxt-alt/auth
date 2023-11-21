@@ -1,6 +1,6 @@
 import type { HTTPRequest, HTTPResponse, Scheme, SchemeCheck, TokenableScheme, RefreshableScheme, ModuleOptions, Route, AuthState } from '../../types';
 import type { NuxtApp } from '#app';
-import { isSet, getProp, routeMeta, isRelativeURL, hasOwn } from '../../utils';
+import { isSet, getProp, isRelativeURL } from '../../utils';
 import { navigateTo, useRoute, useRouter } from '#imports';
 import { Storage } from './storage';
 import { isSamePath, withQuery } from 'ufo';
@@ -26,7 +26,9 @@ export class Auth {
         // Storage & State
         const initialState = {
             user: undefined,
-            loggedIn: false
+            loggedIn: false,
+            strategy: undefined,
+            busy: false
         };
 
         const storage = new Storage(ctx, {
@@ -152,6 +154,8 @@ export class Auth {
     }
 
     async login(...args: any[]): Promise<HTTPResponse<any> | void> {
+        this.$storage.syncUniversal('strategy', this.strategy.name, { cookie: this.$state.loggedIn });
+
         if (!this.strategy.login) {
             return Promise.resolve();
         }
@@ -267,7 +271,6 @@ export class Auth {
     }
 
     async request(endpoint: HTTPRequest, defaults: HTTPRequest = {}): Promise<HTTPResponse<any>> {
-
         const request = typeof defaults === 'object' ? Object.assign({}, defaults, endpoint) : endpoint;
 
         if (request.baseURL === '') {

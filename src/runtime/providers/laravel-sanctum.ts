@@ -37,6 +37,9 @@ export function laravelSanctum(nuxt: Nuxt, strategy: ProviderPartialOptions<Lara
         user: {
             property: false,
             autoFetch: true,
+        },
+        token: {
+            type: 'Bearer',
         }
     };
 

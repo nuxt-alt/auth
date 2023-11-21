@@ -1,12 +1,9 @@
-import type { EndpointsOption, SchemePartialOptions, SchemeCheck, CookieUserOptions, HTTPRequest, HTTPResponse } from '../../types';
+import type { SchemePartialOptions, SchemeCheck, TokenableScheme, HTTPRequest, HTTPResponse } from '../../types';
 import type { Auth } from '..';
-import { BaseScheme } from './base';
+import { LocalScheme, type LocalSchemeEndpoints, type LocalSchemeOptions } from './local'
 import { getProp } from '../../utils';
 
-export interface CookieSchemeEndpoints extends EndpointsOption {
-    login: HTTPRequest;
-    logout: HTTPRequest | false;
-    user: HTTPRequest | false;
+export interface CookieSchemeEndpoints extends LocalSchemeEndpoints {
     csrf: HTTPRequest | false;
 }
 
@@ -14,11 +11,9 @@ export interface CookieSchemeCookie {
     name: string;
 }
 
-export interface CookieSchemeOptions {
-    name: string;
+export interface CookieSchemeOptions extends LocalSchemeOptions {
     url?: string;
     endpoints: CookieSchemeEndpoints;
-    user: CookieUserOptions;
     cookie: CookieSchemeCookie;
 }
 
@@ -29,18 +24,13 @@ const DEFAULTS: SchemePartialOptions<CookieSchemeOptions> = {
     },
     endpoints: {
         csrf: false,
-        login: {
-            url: '/api/auth/login',
-            method: 'post',
-        },
-        logout: {
-            url: '/api/auth/logout',
-            method: 'post',
-        },
-        user: {
-            url: '/api/auth/user',
-            method: 'get',
-        },
+    },
+    token: {
+        type: false,
+        property: '',
+        maxAge: false,
+        global: false,
+        required: false
     },
     user: {
         property: false,
@@ -48,16 +38,20 @@ const DEFAULTS: SchemePartialOptions<CookieSchemeOptions> = {
     },
 };
 
-export class CookieScheme<OptionsT extends CookieSchemeOptions> extends BaseScheme<OptionsT> {
+export class CookieScheme<OptionsT extends CookieSchemeOptions> extends LocalScheme<OptionsT> implements TokenableScheme<OptionsT> {
     checkStatus: boolean = false;
 
-    constructor($auth: Auth, options: SchemePartialOptions<CookieSchemeOptions>, ...defaults: SchemePartialOptions<CookieSchemeOptions>[]) {
-        super($auth, options as OptionsT, ...(defaults as OptionsT[]), DEFAULTS as OptionsT);
+    constructor($auth: Auth, options: SchemePartialOptions<CookieSchemeOptions>) {
+        super($auth, options as OptionsT, DEFAULTS as OptionsT);
     }
 
     async mounted(): Promise<HTTPResponse<any> | void> {
         if (process.server) {
             this.$auth.ctx.$http.setHeader('referer', this.$auth.ctx.ssrContext!.event.node.req.headers.host!);
+        }
+
+        if (this.options.token?.type) {
+            return super.mounted()
         }
 
         this.checkStatus = true;
@@ -67,6 +61,10 @@ export class CookieScheme<OptionsT extends CookieSchemeOptions> extends BaseSche
 
     check(): SchemeCheck {
         const response = { valid: false };
+
+        if (!super.check().valid && this.options.token?.type) {
+            return response
+        }
 
         if (!this.checkStatus) {
             response.valid = true
@@ -91,6 +89,10 @@ export class CookieScheme<OptionsT extends CookieSchemeOptions> extends BaseSche
         // Make CSRF request if required
         if (this.options.endpoints.csrf) {
             await this.$auth.request(this.options.endpoints.csrf);
+        }
+
+        if (this.options.token?.type) {
+            return super.login(endpoint, { reset: false })
         }
 
         if (!this.options.endpoints.login) {
@@ -149,20 +151,13 @@ export class CookieScheme<OptionsT extends CookieSchemeOptions> extends BaseSche
             });
     }
 
-    async logout(endpoint: HTTPRequest = {}): Promise<void> {
-        // Only connect to logout endpoint if it's configured
-        if (this.options.endpoints.logout) {
-            await this.$auth.requestWith(endpoint, this.options.endpoints.logout).catch((err: any) => console.error(err));
-        }
-
-        // But reset regardless
-        this.$auth.redirect('logout');
-        return this.$auth.reset();
-    }
-
     reset(): void {
         if (this.options.cookie.name) {
             this.$auth.$storage.setCookie(this.options.cookie.name, null);
+        }
+
+        if (this.options.token?.type) {
+            return super.reset()
         }
 
         this.$auth.setUser(false);

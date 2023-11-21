@@ -41,7 +41,7 @@ export class RequestHandler {
 
                 // Refresh token has expired. There is no way to refresh. Force reset.
                 if (refreshTokenExpired) {
-                    this.scheme.reset!();
+                    this.scheme.reset?.();
                     throw new ExpiredAuthSessionError();
                 }
 
@@ -49,7 +49,7 @@ export class RequestHandler {
                 if (tokenExpired) {
                     // Refresh token is not available. Force reset.
                     if (!isRefreshable) {
-                        this.scheme.reset!();
+                        this.scheme.reset?.();
                         throw new ExpiredAuthSessionError();
                     }
 
@@ -59,7 +59,7 @@ export class RequestHandler {
                         .then(() => true)
                         .catch(() => {
                             // Tokens couldn't be refreshed. Force reset.
-                            this.scheme.reset!();
+                            this.scheme.reset?.();
                             throw new ExpiredAuthSessionError();
                         });
                 }

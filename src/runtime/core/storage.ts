@@ -119,7 +119,7 @@ export class Storage {
             this.#PiniaInitStore = this.#PiniaStore(pinia);
             this.state = this.#PiniaInitStore.$state;
         } else {
-            this.#initStore = useState<AuthState>('auth', () => ({
+            this.#initStore = useState<AuthState>(this.options.stores.state?.namespace, () => ({
                 ...this.options.initialState
             }))
 

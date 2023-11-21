@@ -36,6 +36,9 @@ export const moduleDefaults: ModuleOptions = {
     },
 
     stores: {
+        state: {
+            namespace: 'auth'
+        },
         pinia: {
             enabled: false,
             namespace: 'auth',
@@ -45,6 +48,8 @@ export const moduleDefaults: ModuleOptions = {
             prefix: 'auth.',
             options: {
                 path: '/',
+                sameSite: 'lax',
+                maxAge: 31536000,
             },
         },
         local: {

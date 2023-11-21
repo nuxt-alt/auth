@@ -19,6 +19,9 @@ export interface ModuleOptions {
     routerStrategy?: string;
     scopeKey: string;
     stores: Partial<{
+        state: {
+            namespace?: string
+        };
         pinia: {
             enabled: boolean;
             namespace?: string;

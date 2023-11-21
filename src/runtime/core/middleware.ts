@@ -30,6 +30,7 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
         // Refresh token has expired. There is no way to refresh. Force reset.
         if (refreshTokenExpired) {
             ctx.$auth.reset();
+            return ctx.$auth.redirect('login', to);
         } else if (tokenExpired) {
             // Token has expired. Check if refresh token is available.
             if (isRefreshable) {
@@ -39,10 +40,12 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
                 } catch (error) {
                     // Reset when refresh was not successfull
                     ctx.$auth.reset();
+                    return ctx.$auth.redirect('login', to);
                 }
             } else {
                 // Refresh token is not available. Force reset.
                 ctx.$auth.reset();
+                return ctx.$auth.redirect('login', to);
             }
         }
 
