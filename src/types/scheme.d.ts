@@ -3,12 +3,9 @@ import type { Auth } from '../runtime/core';
 import type { Token, IdToken, RefreshToken, RefreshController, RequestHandler } from '../runtime/inc';
 import type { PartialExcept } from './utils';
 
-export interface UserOptions {
-    property: string | false;
-    autoFetch: boolean;
-}
+export type SchemeNames<N = ''> = 'local' | 'cookie' | 'laravelJWT' | 'openIDConnect' | 'refresh' | 'oauth2' | 'auth0' | N
 
-export interface CookieUserOptions {
+export interface UserOptions {
     property: string | false;
     autoFetch: boolean;
 }
@@ -38,7 +35,7 @@ export interface Scheme<OptionsT extends SchemeOptions = SchemeOptions> {
     name?: string;
     $auth: Auth;
     mounted?(...args: any[]): Promise<HTTPResponse<any> | void>;
-    check?(checkStatus: boolean): SchemeCheck;
+    check?(checkStatus?: boolean): SchemeCheck;
     login(...args: any[]): Promise<HTTPResponse<any> | void>;
     fetchUser(endpoint?: HTTPRequest): Promise<HTTPResponse<any> | void>;
     setUserToken?(

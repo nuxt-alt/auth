@@ -18,7 +18,7 @@ export interface Oauth2SchemeEndpoints extends EndpointsOption {
 export interface Oauth2SchemeOptions extends SchemeOptions, TokenableSchemeOptions, RefreshableSchemeOptions {
     endpoints: Oauth2SchemeEndpoints;
     user: UserOptions;
-    responseMode: 'query.jwt' | 'fragment.jwt' | 'form_post.jwt' | 'jwt';
+    responseMode: 'query.jwt' | 'fragment.jwt' | 'form_post.jwt' | 'jwt' | '';
     responseType: 'code' | 'token' | 'id_token' | 'none' | string;
     grantType: 'implicit' | 'authorization_code' | 'client_credentials' | 'password' | 'refresh_token' | 'urn:ietf:params:oauth:grant-type:device_code';
     accessType: 'online' | 'offline';
@@ -28,7 +28,7 @@ export interface Oauth2SchemeOptions extends SchemeOptions, TokenableSchemeOptio
     clientSecretTransport: 'body' | 'aurthorization_header';
     scope: string | string[];
     state: string;
-    codeChallengeMethod: 'implicit' | 'S256' | 'plain';
+    codeChallengeMethod: 'implicit' | 'S256' | 'plain' | '';
     acrValues: string;
     audience: string;
     autoLogout: boolean;

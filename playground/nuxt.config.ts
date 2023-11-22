@@ -1,10 +1,17 @@
-import Module from '..'
+import AuthModule from '..'
 
 export default defineNuxtConfig({
     modules: [
-        Module,
+        AuthModule as any,
         "@nuxt-alt/http",
-        "@pinia/nuxt",
+        "@nuxt-alt/proxy",
+        '@nuxt/ui'
     ],
-    auth: {}
+    auth: {
+        strategies: {
+            social: {
+                provider: 'google',
+            }
+        }
+    }
 });

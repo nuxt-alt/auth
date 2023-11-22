@@ -1,14 +1,13 @@
 import type { Strategy } from './strategy';
 import type { NuxtPlugin } from '@nuxt/schema';
 import type { AuthState } from './index';
+import type { CookieSerializeOptions } from 'cookie-es';
 
 export interface ModuleOptions {
     globalMiddleware?: boolean;
     enableMiddleware?: boolean;
     plugins?: (NuxtPlugin | string)[];
-    strategies?: {
-        [strategy: string]: Strategy | false;
-    };
+    strategies?: Record<string, Strategy>;
     ignoreExceptions: boolean;
     resetOnError: boolean | ((...args: any[]) => boolean);
     defaultStrategy: string | undefined;
@@ -29,15 +28,7 @@ export interface ModuleOptions {
         cookie: {
             enabled: boolean;
             prefix?: string;
-            options?: {
-                path?: string;
-                expires?: Date;
-                maxAge?: number;
-                domain?: string;
-                secure?: boolean;
-                sameSite?: 'strict' | 'lax' | 'none';
-                httpOnly?: boolean;
-            };
+            options?: CookieSerializeOptions;
         };
         local: { 
             enabled: boolean;
