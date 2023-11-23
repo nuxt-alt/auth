@@ -4,7 +4,6 @@ import { Oauth2Scheme, type Oauth2SchemeEndpoints, type Oauth2SchemeOptions } fr
 import { normalizePath, getProp, parseQuery } from '../../utils';
 import { IdToken, ConfigurationDocument } from '../inc';
 import { type IdTokenableSchemeOptions } from '../../types';
-import { useRoute } from '#imports';
 import { withQuery, type QueryObject, type QueryValue } from 'ufo';
 
 export interface OpenIDConnectSchemeEndpoints extends Oauth2SchemeEndpoints {
@@ -146,7 +145,7 @@ export class OpenIDConnectScheme<OptionsT extends OpenIDConnectSchemeOptions = O
                 post_logout_redirect_uri: this.logoutRedirectURI,
             };
             const url = withQuery(this.options.endpoints.logout, opts);
-            window.location.replace(url);
+            globalThis.location.replace(url);
         }
         return this.$auth.reset();
     }
@@ -175,7 +174,7 @@ export class OpenIDConnectScheme<OptionsT extends OpenIDConnectSchemeOptions = O
     }
 
     async #handleCallback() {
-        const route = useRoute();
+        const route = this.$auth.ctx.$router.currentRoute.value;
 
         // Handle callback only for specified route
         if (this.$auth.options.redirect && normalizePath(route.path) !== normalizePath(this.$auth.options.redirect.callback)) {

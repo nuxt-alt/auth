@@ -24,8 +24,6 @@ export const moduleDefaults: ModuleOptions = {
 
     redirectStrategy: 'storage',
 
-    routerStrategy: 'router',
-
     watchLoggedIn: true,
 
     redirect: {

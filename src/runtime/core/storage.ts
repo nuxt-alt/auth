@@ -165,11 +165,9 @@ export class Storage {
                 }
             });
         } else {
-            watch(() => ({ ...this.#initStore!.value }), (modified, old) => {
-                if (watchKey in modified) {
-                    fn(modified[watchKey])
-                }
-            })
+            watch(() => this.#initStore!.value[watchKey], (modified, old) => {
+                fn(modified)
+            }, { deep: true })
         }
     }
 

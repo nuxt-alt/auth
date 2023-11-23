@@ -3,16 +3,16 @@
 
 <p align="center">
 <a href="https://www.npmjs.com/package/@nuxt-alt/auth">
-    <img alt="" src="https://img.shields.io/npm/v/@nuxt-alt/auth.svg?style=flat-square">
+    <img alt="" src="https://img.shields.io/npm/v/@nuxt-alt/auth.svg?style=flat&colorA=18181B&colorB=28CF8D">
 </a>
 <a href="https://www.npmjs.com/package/@nuxt-alt/auth">
-    <img alt="" src="https://img.shields.io/npm/dt/@nuxt-alt/auth.svg?style=flat-square">
+    <img alt="" src="https://img.shields.io/npm/dt/@nuxt-alt/auth.svg?style=flat&colorA=18181B&colorB=28CF8D">
 </a>
 </p>
 
 ## Info
 
-This module is meant as an alternative to @nuxtjs/auth, except this is for nuxt3 only with no backwards compatibility support. This will only work with pinia, I had originally had it work with vuex, but since that is in maintenece mode, I decided to switch to pinia. If you find any bugs please do tell me, I'm still working on this.
+This module is meant as an alternative to @nuxtjs/auth, except this is for nuxt3 only with no backwards compatibility support.
 
 ## Setup
 
@@ -24,7 +24,8 @@ yarn add @nuxt-alt/auth @nuxt-alt/http @pinia/nuxt pinia
 
 2. Add `@nuxt-alt/auth` and `@pinia/nuxt` to the `modules` section of `nuxt.config.ts`
 
-**Note:** you dont need to specify `@nuxt-alt/http`, it will automatically be added but if you want to manually add it, make sure it is below the auth module (and above the proxy module if you are using it)
+**Note:** you dont need to specify `@nuxt-alt/http`, it will automatically be added but if you want to manually add it, make sure it is below the auth module (and above the proxy module if you are using it). It also doesn't need pinia
+it will use nuxt's `useState` by default.
 
 ```ts
 export default defineNuxtConfig({
@@ -63,6 +64,13 @@ Enables/disables the middleware to be used globally.
 - Default: `true`
 
 Enables/disables the built-in middleware.
+
+### `stores.state.namespace`
+
+- Type: `String`
+- Default: `auth`
+
+This is the namespace to use for nuxt useState.
 
 ### `stores.pinia.enabled`
 - Type: `Boolean`
@@ -122,13 +130,6 @@ Similar to the localstorage option, this is the prefix for the cookie storage.
 - Default: `{ path: '/' }`
 
 The default cookie storage options.
-
-### `routerStrategy`
-
-- Type: `router | navigateTo`
-- Default: `router`
-
-By default it will use `router` (`navigateTo` has an issue; I'm assuming with SSR that I don't have the time to check into at the moment, but I'll eventually want to replace with at some point.)
 
 ### `redirectStrategy`
 

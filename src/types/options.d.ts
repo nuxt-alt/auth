@@ -15,7 +15,6 @@ export interface ModuleOptions {
     rewriteRedirects: boolean;
     fullPathRedirect: boolean;
     redirectStrategy?: 'query' | 'storage';
-    routerStrategy?: string;
     scopeKey: string;
     stores: Partial<{
         state: {

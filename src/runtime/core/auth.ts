@@ -1,7 +1,6 @@
 import type { HTTPRequest, HTTPResponse, Scheme, SchemeCheck, TokenableScheme, RefreshableScheme, ModuleOptions, Route, AuthState } from '../../types';
 import type { NuxtApp } from '#app';
 import { isSet, getProp, isRelativeURL } from '../../utils';
-import { navigateTo, useRoute, useRouter } from '#imports';
 import { Storage } from './storage';
 import { isSamePath, withQuery } from 'ufo';
 import requrl from 'requrl';
@@ -21,6 +20,17 @@ export class Auth {
 
     constructor(ctx: NuxtApp, options: ModuleOptions) {
         this.ctx = ctx;
+
+        if (typeof this.ctx.$localePath === 'function') {
+            // @ts-expect-error - package may or may not be installed
+            this.ctx.hook('i18n:localeSwitched', () => {
+                this.#transformRedirect(this.options.redirect);
+            })
+
+            // Apply to initial options
+            this.#transformRedirect(options.redirect);
+        }
+
         this.options = options;
 
         // Storage & State
@@ -32,12 +42,21 @@ export class Auth {
         };
 
         const storage = new Storage(ctx, {
-            ...options,
+            ...this.options,
             initialState
         });
 
         this.$storage = storage;
         this.$state = storage.state;
+    }
+
+    #transformRedirect (redirects: typeof this.options.redirect) {
+        for (const key in redirects) {
+            const value = redirects[key as keyof typeof this.options.redirect];
+            if (typeof value === 'string' && typeof this.ctx.$localePath === 'function') {
+                redirects[key as keyof typeof this.options.redirect] = this.ctx.$localePath(value);
+            }
+        }
     }
 
     getStrategy(throwException = true): Scheme {
@@ -318,10 +337,10 @@ export class Auth {
             this.$storage.setState('busy', false)
             return response
         })
-        .catch((error) => {
-            this.$storage.setState('busy', false)
-            return Promise.reject(error)
-        })
+            .catch((error) => {
+                this.$storage.setState('busy', false)
+                return Promise.reject(error)
+            })
     }
 
     onError(listener: ErrorListener): void {
@@ -355,9 +374,7 @@ export class Auth {
             return;
         }
 
-        const currentRoute = useRoute();
-        const currentRouter = useRouter();
-
+        const currentRoute = this.ctx.$router.currentRoute.value;
         const nuxtRoute = this.options.fullPathRedirect ? currentRoute.fullPath : currentRoute.path
         const from = route ? (this.options.fullPathRedirect ? route.fullPath : route.path) : nuxtRoute;
 
@@ -369,6 +386,7 @@ export class Auth {
                 if (this.options.redirectStrategy === 'query') {
                     to = to + '?to=' + encodeURIComponent((queryReturnTo ? queryReturnTo : from) as string);
                 }
+
                 if (this.options.redirectStrategy === 'storage') {
                     this.$storage.setUniversal('redirect', from);
                 }
@@ -379,7 +397,7 @@ export class Auth {
 
                 if (this.options.redirectStrategy === 'storage') {
                     redirect = this.$storage.getUniversal('redirect') as string;
-                    this.$storage.setUniversal('redirect', null);
+                    this.$storage.setUniversal('redirect', null)
                 }
 
                 if (redirect) {
@@ -403,10 +421,10 @@ export class Auth {
         }
 
         if (process.client && (!router || !isRelativeURL(to))) {
-            window.location.replace(to);
+            return globalThis.location.replace(to)
         }
         else {
-            return this.ctx.runWithContext(() => this.options.routerStrategy === 'navigateTo' ? navigateTo(to) : currentRouter.push(to));
+            return this.ctx.$router.push(typeof this.ctx.$localePath === 'function' ? this.ctx.$localePath(to) : to);
         }
     }
 
