@@ -1,8 +1,18 @@
-> Alternative Auth module for [Nuxt](https://nuxt.com)
+<h1 align="center">Auth</h1>
+<p align="center">Alternative Auth module for Nuxt</p>
+
+<p align="center">
+<a href="https://www.npmjs.com/package/@nuxt-alt/auth">
+    <img alt="" src="https://img.shields.io/npm/v/@nuxt-alt/auth.svg?style=flat&colorA=18181B&colorB=28CF8D">
+</a>
+<a href="https://www.npmjs.com/package/@nuxt-alt/auth">
+    <img alt="" src="https://img.shields.io/npm/dt/@nuxt-alt/auth.svg?style=flat&colorA=18181B&colorB=28CF8D">
+</a>
+</p>
 
 ## Info
 
-This module is meant as an alternative to @nuxtjs/auth, except this is for nuxt3 only with no backwards compatibility support. This will only work with pinia, I had originally had it work with vuex, but since that is in maintenece mode, I decided to switch to pinia. If you find any bugs please do tell me, I'm still working on this.
+This module is meant as an alternative to @nuxtjs/auth, except this is for nuxt3 only with no backwards compatibility support.
 
 ## Setup
 
@@ -14,7 +24,8 @@ yarn add @nuxt-alt/auth @nuxt-alt/http @pinia/nuxt pinia
 
 2. Add `@nuxt-alt/auth` and `@pinia/nuxt` to the `modules` section of `nuxt.config.ts`
 
-**Note:** you dont need to specify `@nuxt-alt/http`, it will automatically be added but if you want to manually add it, make sure it is below the auth module (and above the proxy module if you are using it)
+**Note:** you dont need to specify `@nuxt-alt/http`, it will automatically be added but if you want to manually add it, make sure it is below the auth module (and above the proxy module if you are using it). It also doesn't need pinia
+it will use nuxt's `useState` by default.
 
 ```ts
 export default defineNuxtConfig({
@@ -54,26 +65,71 @@ Enables/disables the middleware to be used globally.
 
 Enables/disables the built-in middleware.
 
-### `pinia.namespace`
+### `stores.state.namespace`
 
 - Type: `String`
 - Default: `auth`
 
-Changed from vuex to pinia, this is the namespace to use for the pinia store.
+This is the namespace to use for nuxt useState.
 
-### `sessionStorage`
+### `stores.pinia.enabled`
+- Type: `Boolean`
+- Default: `false`
 
-- Type: `String | False`
+Enable this option to use the pinia store, bey default this is disabled and nuxt's `useState` is used instead.
+
+### `stores.pinia.namespace`
+
+- Type: `String`
+- Default: `auth`
+
+This is the namespace to use for the pinia store.
+
+### `stores.local.enabled`
+- Type: `Boolean`
+- Default: `true`
+
+Enable this option to use the localStorage store.
+
+### `stores.local.prefix`
+
+- Type: `String`
 - Default: `auth.`
 
-Similar to the localstorage option, there is a session storage options available for you to use.
+This sets the localStorage prefix.
 
-### `routerStrategy`
+### `stores.session.enabled`
+- Type: `Boolean`
+- Default: `true`
 
-- Type: `router | navigateTo`
-- Default: `router`
+Enable this option to use the sessionStorage store.
 
-By default it will use `router` (`navigateTo` has an issue; I'm assuming with SSR that I don't have the time to check into at the moment, but I'll eventually want to replace with at some point.)
+### `stores.session.prefix`
+
+- Type: `String`
+- Default: `auth.`
+
+Similar to the localstorage option, this is the prefix for session storage.
+
+### `stores.cookie.enabled`
+- Type: `Boolean`
+- Default: `true`
+
+Enable this option to use the cookie storage.
+
+### `stores.cookie.prefix`
+
+- Type: `String`
+- Default: `auth.`
+
+Similar to the localstorage option, this is the prefix for the cookie storage.
+
+### `stores.cookie.options`
+
+- Type: `Object`
+- Default: `{ path: '/' }`
+
+The default cookie storage options.
 
 ### `redirectStrategy`
 
@@ -82,24 +138,8 @@ By default it will use `router` (`navigateTo` has an issue; I'm assuming with SS
 
 The type of redirection strategy you want to use, `storage` utilizng localStorage for redirects, `query` utilizing the route query parameters.
 
-## Tokens (Types)
-
-In addition to [Auth Tokens](https://auth.nuxtjs.org/api/tokens);
-
-By default the `$auth.strategy` getter uses the `Scheme` type which does not have `token` or `refreshToken` property types. To help with this, a `$auth.refreshStrategy` and a `$auth.tokenStrategy` getter have been added for typing. They all do the same thing, this is just meant for type hinting.
-
-## Cookie-based auth (Update: 2.5.0+)
-
-The cookie scheme has been decoupled from the local scheme as it does not utitlize tokens, rather it it uses cookies.
-
-~~There is a new `cookie.server` property, this indicates that the cookie we will be looking for will be set upon login otherwise we will be looking at a client/browser cookie. There has also been 2 user properties one for the client/browser and one for the server. An example config looks like this:~~
-
-The `cookie.server` param has been removed. This was meant as a workaround to decouple the server and client user request when logging in because the check was being overriden. This should be fixed in 2.5.0. The `user.property` param no longer needs to be separated by server and client so use `user.property` instead of `user.property.server` and `user.property.client`.
-
 ## TypeScript (2.6.0+)
-
 The user information can be edited like so for TypeScript:
-
 ```ts
 declare module '@nuxt-alt/auth' {
     interface UserInfo {
@@ -108,6 +148,12 @@ declare module '@nuxt-alt/auth' {
     }
 }
 ```
+
+## Tokens (Types)
+
+In addition to [Auth Tokens](https://auth.nuxtjs.org/api/tokens);
+
+By default the `$auth.strategy` getter uses the `Scheme` type which does not have `token` or `refreshToken` property types. To help with this, a `$auth.refreshStrategy` and a `$auth.tokenStrategy` getter have been added for typing. They all do the same thing, this is just meant for type hinting.
 
 ## Oauth2
 

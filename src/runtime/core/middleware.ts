@@ -1,5 +1,5 @@
-import { routeMeta, getMatchedComponents, normalizePath, hasOwn } from '../../utils';
-import { useNuxtApp, defineNuxtRouteMiddleware } from '#imports';
+import { routeMeta, getMatchedComponents, hasOwn, normalizePath } from '../../utils';
+import { useAuth, defineNuxtRouteMiddleware } from '#imports';
 
 export default defineNuxtRouteMiddleware(async (to, from) => {
     // Disable middleware if options: { auth: false } is set on the route
@@ -15,40 +15,43 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
         return;
     }
 
-    const ctx = useNuxtApp();
+    const auth = useAuth();
 
-    const { login, callback } = ctx.$auth.options.redirect;
+    const { login, callback } = auth.options.redirect;
 
     const pageIsInGuestMode = hasOwn(to.meta, 'auth') && routeMeta(to, 'auth', 'guest');
 
     const insidePage = (page: string) => normalizePath(to.path) === normalizePath(page);
 
-    if (ctx.$auth.$state.loggedIn) {
+    if (auth.$state.loggedIn) {
         // Perform scheme checks.
-        const { tokenExpired, refreshTokenExpired, isRefreshable } = ctx.$auth.check(true);
+        const { tokenExpired, refreshTokenExpired, isRefreshable } = auth.check(true);
+
+        // -- Authorized --
+        if (!login || insidePage(login) || pageIsInGuestMode) {
+            return auth.redirect('home', to)
+        }
 
         // Refresh token has expired. There is no way to refresh. Force reset.
         if (refreshTokenExpired) {
-            ctx.$auth.reset();
+            auth.reset();
+            return auth.redirect('login', to);
         } else if (tokenExpired) {
             // Token has expired. Check if refresh token is available.
             if (isRefreshable) {
                 // Refresh token is available. Attempt refresh.
                 try {
-                    await ctx.$auth.refreshTokens();
+                    await auth.refreshTokens();
                 } catch (error) {
                     // Reset when refresh was not successfull
-                    ctx.$auth.reset();
+                    auth.reset();
+                    return auth.redirect('login', to);
                 }
             } else {
                 // Refresh token is not available. Force reset.
-                ctx.$auth.reset();
+                auth.reset();
+                return auth.redirect('login', to);
             }
-        }
-
-        // -- Authorized --
-        if (!login || insidePage(login) || pageIsInGuestMode) {
-            return ctx.$auth.redirect('home', to);
         }
     }
 
@@ -56,6 +59,6 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
     // (Those passing `callback` at runtime need to mark their callback component
     // with `auth: false` to avoid an unnecessary redirect from callback to login)
     else if (!pageIsInGuestMode && (!callback || !insidePage(callback))) {
-        return ctx.$auth.redirect('login', to);
+        return auth.redirect('login', to);
     }
 });

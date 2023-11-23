@@ -1,14 +1,13 @@
 import type { Strategy } from './strategy';
 import type { NuxtPlugin } from '@nuxt/schema';
 import type { AuthState } from './index';
+import type { CookieSerializeOptions } from 'cookie-es';
 
 export interface ModuleOptions {
     globalMiddleware?: boolean;
     enableMiddleware?: boolean;
     plugins?: (NuxtPlugin | string)[];
-    strategies?: {
-        [strategy: string]: Strategy | false;
-    };
+    strategies?: Record<string, Strategy>;
     ignoreExceptions: boolean;
     resetOnError: boolean | ((...args: any[]) => boolean);
     defaultStrategy: string | undefined;
@@ -16,29 +15,34 @@ export interface ModuleOptions {
     rewriteRedirects: boolean;
     fullPathRedirect: boolean;
     redirectStrategy?: 'query' | 'storage';
-    routerStrategy?: string;
     scopeKey: string;
+    stores: Partial<{
+        state: {
+            namespace?: string
+        };
+        pinia: {
+            enabled: boolean;
+            namespace?: string;
+        };
+        cookie: {
+            enabled: boolean;
+            prefix?: string;
+            options?: CookieSerializeOptions;
+        };
+        local: { 
+            enabled: boolean;
+            prefix?: string; 
+        };
+        session: { 
+            enabled: boolean;
+            prefix?: string;
+        };
+    }>,
     redirect: {
         login: string;
         logout: string;
         callback: string;
         home: string;
     };
-    pinia: {
-        namespace: string;
-    };
-    cookie: {
-        prefix?: string;
-        options?: {
-            path?: string;
-            expires?: Date;
-            maxAge?: number;
-            domain?: string;
-            secure?: boolean;
-            sameSite?: 'strict' | 'lax' | 'none';
-        };
-    };
-    localStorage: { prefix: string; } | false;
-    sessionStorage: { prefix: string; } | false;
     initialState?: AuthState;
 }

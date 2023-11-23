@@ -1,4 +1,14 @@
 {
     "private": true,
-    "name": "@nuxt-alt/auth"
+    "name": "@nuxt-alt/auth-playgound",
+    "type": "module",
+    "scripts": {
+        "dev": "nuxi dev",
+        "build": "nuxi build",
+        "generate": "nuxi generate"
+    },
+    "dependencies": {
+        "nuxt": "^3.8.2",
+        "@nuxt-alt/auth": "latest"
+    }
 }

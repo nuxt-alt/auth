@@ -1,5 +1,5 @@
 import type { Oauth2SchemeOptions, RefreshSchemeOptions, LocalSchemeOptions, CookieSchemeOptions } from '../runtime';
-import type { StrategyOptions, HTTPRequest } from '../types';
+import type { StrategyOptions, HTTPRequest, TokenableSchemeOptions } from '../types';
 import type { Nuxt } from '@nuxt/schema';
 import { addServerHandler, addTemplate } from '@nuxt/kit';
 import { join } from 'pathe';
@@ -80,7 +80,7 @@ export function initializePasswordGrantFlow<SOptions extends StrategyOptions<Ref
     })
 }
 
-export function assignAbsoluteEndpoints<SOptions extends StrategyOptions<(LocalSchemeOptions | Oauth2SchemeOptions | CookieSchemeOptions) & { url: string; }>>(strategy: SOptions): void {
+export function assignAbsoluteEndpoints<SOptions extends StrategyOptions<(TokenableSchemeOptions | RefreshSchemeOptions) & { url: string; }>>(strategy: SOptions): void {
     const { url, endpoints } = strategy;
 
     if (endpoints) {

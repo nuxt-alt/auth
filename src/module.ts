@@ -1,5 +1,5 @@
 import type { ModuleOptions } from './types';
-import { addImports, addPluginTemplate, addTemplate, createResolver, defineNuxtModule, installModule, addRouteMiddleware } from '@nuxt/kit';
+import { addImports, addPlugin, addPluginTemplate, addTemplate, createResolver, defineNuxtModule, installModule, addRouteMiddleware } from '@nuxt/kit';
 import { name, version } from '../package.json';
 import { resolveStrategies } from './resolve';
 import { moduleDefaults } from './options';
@@ -17,13 +17,23 @@ export default defineNuxtModule({
             nuxt: '^3.0.0',
         },
     },
-    defaults: moduleDefaults,
+    defaults: ({ options }) => ({
+        ...moduleDefaults,
+        stores: {
+            cookie: {
+                secure: options.dev ? false : true
+            }
+        },
+    }),
     async setup(moduleOptions, nuxt) {
-        // Merge all option sources
-        const options = defu(nuxt.options.runtimeConfig[CONFIG_KEY] as ModuleOptions, moduleOptions, moduleDefaults)
-
         // Resolver
         const resolver = createResolver(import.meta.url);
+
+        // Runtime
+        const runtime = resolver.resolve('runtime');
+
+        // Merge all option sources
+        const options = defu(nuxt.options.runtimeConfig[CONFIG_KEY] as ModuleOptions, moduleOptions, moduleDefaults) as ModuleOptions
 
         // Resolve strategies
         const { strategies, strategyScheme } = await resolveStrategies(nuxt, options);
@@ -48,11 +58,18 @@ export default defineNuxtModule({
             installModule('@nuxt-alt/http')
         }
 
+        if (options.watchLoggedIn) {
+            addPlugin({
+                src: resolver.resolve(runtime, 'watch.plugin'),
+                mode: 'client'
+            })
+        }
+
         // Add auth plugin
         addPluginTemplate({
             getContents: () => getAuthPlugin({ options, strategies, strategyScheme, schemeImports }),
             filename: 'auth.plugin.mjs',
-            write: true
+            write: true,
         });
 
         addTemplate({
@@ -66,8 +83,6 @@ export default defineNuxtModule({
             { from: resolver.resolve('runtime/composables'), name: 'useAuth' },
         ])
 
-        // Runtime
-        const runtime = resolver.resolve('runtime');
         nuxt.options.alias['#auth/runtime'] = runtime;
 
         // Providers

@@ -24,8 +24,6 @@ export const moduleDefaults: ModuleOptions = {
 
     redirectStrategy: 'storage',
 
-    routerStrategy: 'router',
-
     watchLoggedIn: true,
 
     redirect: {
@@ -35,31 +33,31 @@ export const moduleDefaults: ModuleOptions = {
         callback: '/login',
     },
 
-    //  -- Pinia Store --
-
-    pinia: {
-        namespace: 'auth',
-    },
-
-    // -- Cookie Store --
-
-    cookie: {
-        prefix: 'auth.',
-        options: {
-            path: '/',
+    stores: {
+        state: {
+            namespace: 'auth'
         },
-    },
-
-    // -- localStorage Store --
-
-    localStorage: {
-        prefix: 'auth.',
-    },
-
-    // -- sessionStorage Store --
-
-    sessionStorage: {
-        prefix: 'auth.',
+        pinia: {
+            enabled: false,
+            namespace: 'auth',
+        },
+        cookie: {
+            enabled: true,
+            prefix: 'auth.',
+            options: {
+                path: '/',
+                sameSite: 'lax',
+                maxAge: 31536000,
+            },
+        },
+        local: {
+            enabled: false,
+            prefix: 'auth.',
+        },
+        session: {
+            enabled: false,
+            prefix: 'auth.',
+        }, 
     },
 
     // -- Strategies --

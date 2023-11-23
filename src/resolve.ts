@@ -1,4 +1,4 @@
-import type { Strategy, ModuleOptions } from './types';
+import type { Strategy, ModuleOptions, ProviderNames, SchemeNames } from './types';
 import type { Nuxt } from '@nuxt/schema';
 import { ProviderAliases } from './runtime/providers';
 import * as AUTH_PROVIDERS from './runtime/providers';
@@ -41,7 +41,7 @@ export async function resolveStrategies(nuxt: Nuxt, options: ModuleOptions) {
 
         // Default provider (same as name)
         if (!strategy.provider) {
-            strategy.provider = strategy.name;
+            strategy.provider = strategy.name as ProviderNames;
         }
 
         // Try to resolve provider
@@ -56,7 +56,7 @@ export async function resolveStrategies(nuxt: Nuxt, options: ModuleOptions) {
 
         // Default scheme (same as name)
         if (!strategy.scheme) {
-            strategy.scheme = strategy.name;
+            strategy.scheme = strategy.name as SchemeNames;
         }
 
         try {
