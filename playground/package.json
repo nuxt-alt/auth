@@ -9,6 +9,7 @@
     },
     "dependencies": {
         "nuxt": "^3.8.2",
-        "@nuxt-alt/auth": "latest"
+        "@nuxt-alt/auth": "latest",
+        "@nuxtjs/i18n": "next"
     }
 }

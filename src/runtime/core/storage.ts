@@ -158,7 +158,7 @@ export class Storage {
                 fn(modified)
             }, { deep: true })
         } else {
-            watch(() => this.#initStore!.value[watchKey], (modified, old) => {
+            watch(() => this.#initStore.value[watchKey], (modified, old) => {
                 fn(modified)
             }, { deep: true })
         }

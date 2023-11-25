@@ -1,5 +1,6 @@
 import type { HTTPResponse, SchemeCheck, SchemePartialOptions } from '../../types';
 import type { Auth } from '..';
+import type { Router } from 'vue-router';
 import { Oauth2Scheme, type Oauth2SchemeEndpoints, type Oauth2SchemeOptions } from './oauth2';
 import { normalizePath, getProp, parseQuery } from '../../utils';
 import { IdToken, ConfigurationDocument } from '../inc';
@@ -174,7 +175,7 @@ export class OpenIDConnectScheme<OptionsT extends OpenIDConnectSchemeOptions = O
     }
 
     async #handleCallback() {
-        const route = this.$auth.ctx.$router.currentRoute.value;
+        const route = (this.$auth.ctx.$router as Router).currentRoute.value;
 
         // Handle callback only for specified route
         if (this.$auth.options.redirect && normalizePath(route.path) !== normalizePath(this.$auth.options.redirect.callback)) {
@@ -192,8 +193,12 @@ export class OpenIDConnectScheme<OptionsT extends OpenIDConnectSchemeOptions = O
         // accessToken/idToken
         let token: string = parsedQuery[this.options.token!.property] as string;
 
+        // recommended accessToken lifetime
+        let tokenExpiresIn: number | boolean = false
+
         // refresh token
         let refreshToken: string;
+
         if (this.options.refreshToken.property) {
             refreshToken = parsedQuery[this.options.refreshToken.property] as string;
         }
@@ -238,6 +243,7 @@ export class OpenIDConnectScheme<OptionsT extends OpenIDConnectSchemeOptions = O
             });
 
             token = (getProp(response._data, this.options.token!.property) as string) || token;
+            tokenExpiresIn = (getProp(response._data, 'expires_in') as number) || tokenExpiresIn
             refreshToken = (getProp(response._data, this.options.refreshToken.property!) as string) || refreshToken!;
             idToken = (getProp(response._data, this.options.idToken.property) as string) || idToken;
         }
@@ -247,7 +253,7 @@ export class OpenIDConnectScheme<OptionsT extends OpenIDConnectSchemeOptions = O
         }
 
         // Set token
-        this.token.set(token);
+        this.token.set(token, tokenExpiresIn);
 
         // Store refresh token
         if (refreshToken! && refreshToken.length) {

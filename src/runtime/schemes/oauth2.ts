@@ -1,6 +1,7 @@
 import type { RefreshableScheme, SchemePartialOptions, SchemeCheck, RefreshableSchemeOptions, UserOptions, SchemeOptions, HTTPResponse, EndpointsOption, TokenableSchemeOptions } from '../../types';
 import type { IncomingMessage } from 'node:http';
 import type { Auth } from '../core';
+import type { Router } from 'vue-router';
 import { getProp, normalizePath, randomString, removeTokenPrefix, parseQuery } from '../../utils';
 import { RefreshController, RequestHandler, ExpiredAuthSessionError, Token, RefreshToken } from '../inc';
 import { joinURL, withQuery } from 'ufo';
@@ -346,7 +347,7 @@ export class Oauth2Scheme<OptionsT extends Oauth2SchemeOptions = Oauth2SchemeOpt
     }
 
     async #handleCallback(): Promise<boolean | void> {
-        const route = this.$auth.ctx.$router.currentRoute.value
+        const route = (this.$auth.ctx.$router as Router).currentRoute.value
 
         // Handle callback only for specified route
         if (this.$auth.options.redirect && normalizePath(route.path) !== normalizePath(this.$auth.options.redirect.callback)) {
@@ -364,6 +365,8 @@ export class Oauth2Scheme<OptionsT extends Oauth2SchemeOptions = Oauth2SchemeOpt
         let token: string = parsedQuery[this.options.token!.property] as string;
         // refresh token
         let refreshToken: string;
+        // recommended accessToken lifetime
+        let tokenExpiresIn: number | boolean = false
 
         if (this.options.refreshToken.property) {
             refreshToken = parsedQuery[this.options.refreshToken.property] as string;
@@ -407,6 +410,7 @@ export class Oauth2Scheme<OptionsT extends Oauth2SchemeOptions = Oauth2SchemeOpt
 
             token = (getProp(response._data, this.options.token!.property) as string) || token;
             refreshToken = (getProp(response._data, this.options.refreshToken.property) as string) || refreshToken!;
+            tokenExpiresIn = (getProp(response._data, 'expires_in') as number) || tokenExpiresIn
         }
 
         if (!token || !token.length) {
@@ -414,7 +418,7 @@ export class Oauth2Scheme<OptionsT extends Oauth2SchemeOptions = Oauth2SchemeOpt
         }
 
         // Set token
-        this.token.set(token);
+        this.token.set(token, tokenExpiresIn);
 
         // Store refresh token
         if (refreshToken! && refreshToken.length) {
