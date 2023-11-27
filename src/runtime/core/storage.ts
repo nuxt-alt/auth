@@ -1,17 +1,17 @@
-import type { ModuleOptions, AuthStoreDefinition, AuthState, StoreMethod, StoreIncludeOptions } from '../../types';
+import type { ModuleOptions, AuthStore, AuthState, StoreMethod, StoreIncludeOptions } from '../../types';
 import type { NuxtApp } from '#app';
 import { isUnset, isSet, decodeValue, encodeValue, setH3Cookie } from '../../utils';
-import { defineStore, type Pinia } from 'pinia';
+import { defineStore, type Pinia, type StoreDefinition } from 'pinia';
 import { parse, serialize, type CookieSerializeOptions } from 'cookie-es';
 import { useState } from '#imports';
-import { watch } from 'vue';
+import { watch, type Ref } from 'vue';
 
 export class Storage {
     ctx: NuxtApp;
     options: ModuleOptions;
-    #PiniaStore!: AuthStoreDefinition;
-    #PiniaInitStore!: AuthStoreDefinition;
-    #initStore?: Ref<AuthState>;
+    #PiniaStore!: StoreDefinition;
+    #initPiniaStore!: AuthStore;
+    #initStore!: Ref<AuthState>;
     state: AuthState;
     #state: AuthState;
     #piniaEnabled: boolean = false;
@@ -101,23 +101,18 @@ export class Storage {
     // Local state (reactive)
     // ------------------------------------
 
-    async #initState() {
+    #initState() {
         // Use pinia for local state's if possible
         const pinia = this.ctx.$pinia as Pinia
         this.#piniaEnabled = this.options.stores.pinia!.enabled && !!pinia;
 
         if (this.#piniaEnabled) {
             this.#PiniaStore = defineStore(this.options.stores.pinia?.namespace!, {
-                state: () => ({ ...this.options.initialState }),
-                actions: {
-                    SET(payload: any) {
-                        this.$patch({ [payload.key]: payload.value });
-                    },
-                }
-            }) as unknown as AuthStoreDefinition;
+                state: (): AuthState => ({ ...this.options.initialState })
+            });
 
-            this.#PiniaInitStore = this.#PiniaStore(pinia);
-            this.state = this.#PiniaInitStore.$state;
+            this.#initPiniaStore = this.#PiniaStore(pinia)
+            this.state = this.#initPiniaStore;
         } else {
             this.#initStore = useState<AuthState>(this.options.stores.state?.namespace, () => ({
                 ...this.options.initialState
@@ -127,8 +122,12 @@ export class Storage {
         }
     }
 
+    get pinia() {
+        return this.#initPiniaStore
+    }
+
     get store() {
-        return this.#piniaEnabled ? this.#PiniaInitStore : this.#initStore;
+        return this.#initStore;
     }
 
     setState(key: string, value: any) {
@@ -136,8 +135,7 @@ export class Storage {
             this.#state[key] = value;
         }
         else if (this.#piniaEnabled) {
-            const { SET } = this.#PiniaInitStore;
-            SET({ key, value });
+            this.#initPiniaStore.$patch({ [key]: value });
         }
         else {
             this.state[key] = value;
@@ -150,22 +148,17 @@ export class Storage {
         if (!key.startsWith('_')) {
             return this.state[key];
         } else {
-            return this.#state[key] as AuthState;
+            return this.#state[key];
         }
     }
 
     watchState(watchKey: string, fn: (value: any) => void) {
         if (this.#piniaEnabled) {
-            return this.#PiniaInitStore.$onAction((context) => {
-                if (context.name === 'SET') {
-                    const { key, value } = context.args[0];
-                    if (watchKey === key) {
-                        fn(value);
-                    }
-                }
-            });
+            watch(() => this.#initPiniaStore[watchKey as keyof AuthStore], (modified, old) => {
+                fn(modified)
+            }, { deep: true })
         } else {
-            watch(() => this.#initStore!.value[watchKey], (modified, old) => {
+            watch(() => this.#initStore.value[watchKey], (modified, old) => {
                 fn(modified)
             }, { deep: true })
         }

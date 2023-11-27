@@ -58,18 +58,11 @@ export default defineNuxtModule({
             installModule('@nuxt-alt/http')
         }
 
-        if (options.watchLoggedIn) {
-            addPlugin({
-                src: resolver.resolve(runtime, 'watch.plugin'),
-                mode: 'client'
-            })
-        }
-
         // Add auth plugin
         addPluginTemplate({
             getContents: () => getAuthPlugin({ options, strategies, strategyScheme, schemeImports }),
             filename: 'auth.plugin.mjs',
-            write: true,
+            write: true
         });
 
         addTemplate({

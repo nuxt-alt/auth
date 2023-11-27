@@ -1,6 +1,7 @@
 import type { HTTPRequest, HTTPResponse, Scheme, SchemeCheck, TokenableScheme, RefreshableScheme, ModuleOptions, Route, AuthState } from '../../types';
 import type { NuxtApp } from '#app';
-import { isSet, getProp, isRelativeURL } from '../../utils';
+import type { Router } from 'vue-router';
+import { isSet, getProp, isRelativeURL, routeMeta, hasOwn } from '../../utils';
 import { Storage } from './storage';
 import { isSamePath, withQuery } from 'ufo';
 import requrl from 'requrl';
@@ -129,6 +130,15 @@ export class Auth {
         }
         catch (error: any) {
             this.callOnError(error);
+        }
+        finally {
+            if (process.client && this.options.watchLoggedIn) {
+                this.$storage.watchState('loggedIn', (loggedIn: boolean) => {
+                    if (hasOwn(useRoute().meta, 'auth') && !routeMeta(useRoute(), 'auth', false)) {
+                        this.redirect(loggedIn ? 'home' : 'logout');
+                    }
+                })
+            }
         }
     }
 
@@ -374,7 +384,7 @@ export class Auth {
             return;
         }
 
-        const currentRoute = this.ctx.$router.currentRoute.value;
+        const currentRoute = (this.ctx.$router as Router).currentRoute.value;
         const nuxtRoute = this.options.fullPathRedirect ? currentRoute.fullPath : currentRoute.path
         const from = route ? (this.options.fullPathRedirect ? route.fullPath : route.path) : nuxtRoute;
 
@@ -424,7 +434,7 @@ export class Auth {
             return globalThis.location.replace(to)
         }
         else {
-            return this.ctx.$router.push(typeof this.ctx.$localePath === 'function' ? this.ctx.$localePath(to) : to);
+            return (this.ctx.$router as Router).push(typeof this.ctx.$localePath === 'function' ? this.ctx.$localePath(to) : to);
         }
     }
 

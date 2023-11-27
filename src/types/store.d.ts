@@ -1,21 +1,10 @@
-import type { Store, Pinia, StoreGeneric } from 'pinia';
+import type { Ref } from 'vue';
+import type { _StoreWithState } from 'pinia';
 import type { CookieSerializeOptions } from 'cookie-es';
 
-export type AuthStoreDefinition = Store<string, AuthState, {}, {
-    /**
-     * Returns a store, creates it if necessary.
-     *
-     * @param pinia - Pinia instance to retrieve the store
-     * @param hot - dev only hot module replacement
-     */
-    (pinia?: Pinia | null | undefined, hot?: StoreGeneric): Store<Id, S, G, A>;
-    /**
-     * Sets the key/value pair for the auth module's auth state.
-     *
-     * @param payload - object containing the key and value
-     */
-    SET(payload: any): void;
-}>
+export interface AuthStore extends _StoreWithState<string, AuthState, {}, {}> {
+    [key: string]: AuthState
+}
 
 export type StoreMethod = 'cookie' | 'session' | 'local';
 
