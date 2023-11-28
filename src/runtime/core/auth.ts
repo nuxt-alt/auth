@@ -134,7 +134,7 @@ export class Auth {
         finally {
             if (process.client && this.options.watchLoggedIn) {
                 this.$storage.watchState('loggedIn', (loggedIn: boolean) => {
-                    if (hasOwn(useRoute().meta, 'auth') && !routeMeta(useRoute(), 'auth', false)) {
+                    if (hasOwn((this.ctx.$router as Router).currentRoute.value.meta, 'auth') && !routeMeta((this.ctx.$router as Router).currentRoute.value, 'auth', false)) {
                         this.redirect(loggedIn ? 'home' : 'logout');
                     }
                 })
@@ -183,8 +183,6 @@ export class Auth {
     }
 
     async login(...args: any[]): Promise<HTTPResponse<any> | void> {
-        this.$storage.syncUniversal('strategy', this.strategy.name, { cookie: this.$state.loggedIn });
-
         if (!this.strategy.login) {
             return Promise.resolve();
         }
@@ -345,6 +343,7 @@ export class Auth {
 
         return Promise.resolve(promise).then((response) => {
             this.$storage.setState('busy', false)
+            this.$storage.syncUniversal('strategy', this.strategy.name);
             return response
         })
             .catch((error) => {

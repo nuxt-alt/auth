@@ -1,7 +1,6 @@
 import type { ModuleOptions } from './options';
 import type { Auth } from '../runtime';
 import * as NuxtSchema from '@nuxt/schema';
-import type { CookieSerializeOptions } from 'cookie-es';
 
 export * from './openIDConnectConfigurationDocument';
 export * from './provider';

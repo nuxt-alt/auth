@@ -123,7 +123,7 @@ export class Storage {
     }
 
     get pinia() {
-        return this.#initPiniaStore
+        return this.#initPiniaStore;
     }
 
     get store() {
