@@ -1,4 +1,4 @@
-import type { Oauth2SchemeOptions, RefreshSchemeOptions, LocalSchemeOptions, CookieSchemeOptions } from '../runtime';
+import type { Oauth2SchemeOptions, RefreshSchemeOptions } from '../runtime';
 import type { StrategyOptions, HTTPRequest, TokenableSchemeOptions } from '../types';
 import type { Nuxt } from '@nuxt/schema';
 import { addServerHandler, addTemplate } from '@nuxt/kit';

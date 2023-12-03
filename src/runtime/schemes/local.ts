@@ -65,7 +65,7 @@ export class LocalScheme<OptionsT extends LocalSchemeOptions = LocalSchemeOption
         this.token = new Token(this, this.$auth.$storage);
 
         // Initialize Request Interceptor
-        this.requestHandler = new RequestHandler(this, this.$auth.ctx.$http);
+        this.requestHandler = new RequestHandler(this, this.$auth.ctx.$http, $auth);
     }
 
     check(checkStatus = false): SchemeCheck {
@@ -151,7 +151,7 @@ export class LocalScheme<OptionsT extends LocalSchemeOptions = LocalSchemeOption
         this.updateTokens(response);
 
         // Initialize request interceptor if not initialized
-        if (!this.requestHandler.interceptor) {
+        if (!this.requestHandler.requestInterceptor) {
             this.initializeRequestInterceptor();
         }
 

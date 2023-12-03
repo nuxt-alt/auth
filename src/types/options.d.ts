@@ -1,7 +1,8 @@
 import type { Strategy } from './strategy';
 import type { NuxtPlugin } from '@nuxt/schema';
-import type { AuthState } from './index';
+import type { AuthState, RefreshableScheme, TokenableScheme } from './index';
 import type { CookieSerializeOptions } from 'cookie-es';
+import type { Auth } from '../runtime'
 
 export interface ModuleOptions {
     globalMiddleware?: boolean;
@@ -10,6 +11,7 @@ export interface ModuleOptions {
     strategies?: Record<string, Strategy>;
     ignoreExceptions: boolean;
     resetOnError: boolean | ((...args: any[]) => boolean);
+    resetOnResponseError: boolean | ((error: any, auth: Auth, scheme: TokenableScheme | RefreshableScheme) => void);
     defaultStrategy: string | undefined;
     watchLoggedIn: boolean;
     rewriteRedirects: boolean;

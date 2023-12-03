@@ -27,11 +27,24 @@ import { defu } from 'defu';
 ${options.schemeImports.map((i) => `import { ${i.name}${i.name !== i.as ? ' as ' + i.as : ''} } from '${i.from}'`).join('\n')}
 
 // Options
-const options = ${JSON.stringify(options.options, null, 4)}
+let options = ${JSON.stringify(options.options, converter, 4)}
+
+function parse(config) {
+    const functionRegex = /\bfunction\s*\((.*?)\)\s*\{|\([^)]*\)\s*=>|\basync\s+function\b/;
+
+    for (let prop in config) {
+        if (typeof config[prop] === 'string' && functionRegex.test(config[prop])) {
+            config[prop] = new Function("return (" + config[prop] + ")")()
+        }
+    }
+
+    return config
+}
 
 export default defineNuxtPlugin({
     name: 'nuxt-alt:auth',
     async setup(nuxtApp) {
+        options = parse(options)
         // Create a new Auth instance
         const auth = new Auth(nuxtApp, options)
 
@@ -59,4 +72,12 @@ export default defineNuxtPlugin({
         })
     }
 })`
+}
+
+function converter(key: string, val: any) {
+    if (val && val.constructor === RegExp || typeof val === 'function') {
+        return String(val)
+    }
+
+    return val
 }
