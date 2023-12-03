@@ -123,7 +123,7 @@ export class Oauth2Scheme<OptionsT extends Oauth2SchemeOptions = Oauth2SchemeOpt
     }
 
     protected get logoutRedirectURI(): string {
-        return (this.options.logoutRedirectUri || joinURL(requrl(this.req), this.$auth.options.redirect.logout));
+        return (this.options.logoutRedirectUri || joinURL(requrl(this.req), this.$auth.options.redirect.logout as string));
     }
 
     check(checkStatus = false): SchemeCheck {
@@ -350,7 +350,7 @@ export class Oauth2Scheme<OptionsT extends Oauth2SchemeOptions = Oauth2SchemeOpt
         const route = (this.$auth.ctx.$router as Router).currentRoute.value
 
         // Handle callback only for specified route
-        if (this.$auth.options.redirect && normalizePath(route.path) !== normalizePath(this.$auth.options.redirect.callback)) {
+        if (this.$auth.options.redirect && normalizePath(route.path) !== normalizePath(this.$auth.options.redirect.callback as string)) {
             return;
         }
 

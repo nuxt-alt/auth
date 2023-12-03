@@ -41,10 +41,10 @@ export interface ModuleOptions {
         };
     }>,
     redirect: {
-        login: string;
-        logout: string;
-        callback: string;
-        home: string;
+        login: string | ((auth: Auth, trans?: Function) => string);
+        logout: string | ((auth: Auth, trans?: Function) => string);
+        callback: string | ((auth: Auth, trans?: Function) => string);
+        home: string | ((auth: Auth, trans?: Function) => string);
     };
     initialState?: AuthState;
 }

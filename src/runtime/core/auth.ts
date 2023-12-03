@@ -27,11 +27,10 @@ export class Auth {
             this.ctx.hook('i18n:localeSwitched', () => {
                 this.#transformRedirect(this.options.redirect);
             })
-
-            // Apply to initial options
-            this.#transformRedirect(options.redirect);
         }
 
+        // Apply to initial options
+        this.#transformRedirect(options.redirect);
         this.options = options;
 
         // Storage & State
@@ -56,6 +55,10 @@ export class Auth {
             const value = redirects[key as keyof typeof this.options.redirect];
             if (typeof value === 'string' && typeof this.ctx.$localePath === 'function') {
                 redirects[key as keyof typeof this.options.redirect] = this.ctx.$localePath(value);
+            }
+
+            if (typeof value === 'function') {
+                redirects[key as keyof typeof this.options.redirect] = value(this, typeof this.ctx.$localePath === 'function' ? this.ctx.$localePath as Function : undefined)
             }
         }
     }
@@ -377,7 +380,7 @@ export class Auth {
             return;
         }
 
-        let to: string = this.options.redirect[name as keyof typeof this.options.redirect];
+        let to = this.options.redirect[name as keyof typeof this.options.redirect] as string;
 
         if (!to) {
             return;

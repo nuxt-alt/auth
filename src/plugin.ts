@@ -30,20 +30,26 @@ ${options.schemeImports.map((i) => `import { ${i.name}${i.name !== i.as ? ' as '
 let options = ${JSON.stringify(options.options, converter, 4)}
 
 function parse(config) {
-    const functionRegex1 = /\b\w+\s*\((.*?)\)\s*\{|function\s*\((.*?)\)\s*\{|(\w+)\s*=>|\([^)]*\)\s*=>|\basync\s+function\b/;
-    const functionRegex2 = /\b\w+(\s)+\((.*?)\)\s*\{/;
+    const functionRegex1 = "/\\b\\w+\\s*\\((.*?)\\)\\s*\\{|function\\s*\\((.*?)\\)\\s*\\{|(\\w+)\\s*=>|\\([^)]*\\)\\s*=>|\\basync\\s+function\\b/";
+    const functionRegex2 = "/\\b\\w+(\\s)+\\((.*?)\\)\\s*\\{/";
 
     for (let prop in config) {
-        if (typeof config[prop] === 'string' && (functionRegex1.test(config[prop]) || functionRegex2.test(config[prop]))) {
+        if (typeof config[prop] === 'string' && (new RegExp(functionRegex1).test(config[prop]) || new RegExp(functionRegex2).test(config[prop]))) {
             const paramsStart = config[prop].indexOf('(');
             const paramsEnd = config[prop].indexOf(')');
-            const functionBodyStart = config[prop].indexOf('{');
-            const functionBodyEnd = config[prop].lastIndexOf('}');
+            const functionParams = config[prop].substring(paramsStart + 1, paramsEnd).split(',').map(item => item.trim());
 
-            const functionParams = config[prop].substring(paramsStart + 1, paramsEnd);
-            const functionBody = config[prop].substring(functionBodyStart + 1, functionBodyEnd);
-
-            config[prop] = new Function(...functionParams.split(','), functionBody);
+            let functionBody;
+            if (config[prop].includes('{')) {  
+                const functionBodyStart = config[prop].indexOf('{');
+                const functionBodyEnd = config[prop].lastIndexOf('}');
+                functionBody = config[prop].substring(functionBodyStart + 1, functionBodyEnd);
+            	config[prop] = new Function('return function(' + functionParams.join(',') + '){' + functionBody + '}')();
+            } else {
+                functionBody = config[prop].substring(paramsEnd + 1).trim();
+                if (functionBody.startsWith('=>')) functionBody = functionBody.slice(2).trim();
+				config[prop] = new Function('return function(' + functionParams.join(',') + '){return ' + functionBody + '}')();
+            }
         } else if (typeof config[prop] === 'object' && config[prop] !== null) {
             parse(config[prop]);
         }
