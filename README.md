@@ -58,6 +58,24 @@ Most of the options are taken directly from the [@nuxtjs/auth](https://auth.nuxt
 
 Enables/disables the middleware to be used globally.
 
+### `resetOnResponseError`
+
+- Type: `Boolean | Function`
+- Default: `false`
+
+When enabled it will reset when there's a 401 error in any of the responses. You are able to turn this into a function to handle this yourself:
+```ts
+auth: {
+    //... module options
+    resetOnResponseError: (error, auth, scheme) => {
+       if (error.response.status === 401) {
+           scheme.reset?.()
+           auth.redirect('login')
+       }
+   },
+}
+```
+
 ### `enableMiddleware`
 
 - Type: `Boolean`
