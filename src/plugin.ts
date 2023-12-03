@@ -30,11 +30,22 @@ ${options.schemeImports.map((i) => `import { ${i.name}${i.name !== i.as ? ' as '
 let options = ${JSON.stringify(options.options, converter, 4)}
 
 function parse(config) {
-    const functionRegex = /\bfunction\s*\((.*?)\)\s*\{|\([^)]*\)\s*=>|\basync\s+function\b/;
+    const functionRegex1 = /\b\w+\s*\((.*?)\)\s*\{|function\s*\((.*?)\)\s*\{|(\w+)\s*=>|\([^)]*\)\s*=>|\basync\s+function\b/;
+    const functionRegex2 = /\b\w+(\s)+\((.*?)\)\s*\{/;
 
     for (let prop in config) {
-        if (typeof config[prop] === 'string' && functionRegex.test(config[prop])) {
-            config[prop] = new Function("return (" + config[prop] + ")")()
+        if (typeof config[prop] === 'string' && (functionRegex1.test(config[prop]) || functionRegex2.test(config[prop]))) {
+            const paramsStart = config[prop].indexOf('(');
+            const paramsEnd = config[prop].indexOf(')');
+            const functionBodyStart = config[prop].indexOf('{');
+            const functionBodyEnd = config[prop].lastIndexOf('}');
+
+            const functionParams = config[prop].substring(paramsStart + 1, paramsEnd);
+            const functionBody = config[prop].substring(functionBodyStart + 1, functionBodyEnd);
+
+            config[prop] = new Function(...functionParams.split(','), functionBody);
+        } else if (typeof config[prop] === 'object' && config[prop] !== null) {
+            parse(config[prop]);
         }
     }
 
