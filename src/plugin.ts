@@ -44,11 +44,11 @@ function parse(config) {
                 const functionBodyStart = config[prop].indexOf('{');
                 const functionBodyEnd = config[prop].lastIndexOf('}');
                 functionBody = config[prop].substring(functionBodyStart + 1, functionBodyEnd);
-            	config[prop] = new Function('return function(' + functionParams.join(',') + '){' + functionBody + '}')();
+                config[prop] = new Function('return function(' + functionParams.join(',') + '){' + functionBody + '}')();
             } else {
                 functionBody = config[prop].substring(paramsEnd + 1).trim();
                 if (functionBody.startsWith('=>')) functionBody = functionBody.slice(2).trim();
-				config[prop] = new Function('return function(' + functionParams.join(',') + '){return ' + functionBody + '}')();
+                config[prop] = new Function('return function(' + functionParams.join(',') + '){return ' + functionBody + '}')();
             }
         } else if (typeof config[prop] === 'object' && config[prop] !== null) {
             parse(config[prop]);
