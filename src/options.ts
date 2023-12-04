@@ -10,6 +10,8 @@ export const moduleDefaults: ModuleOptions = {
 
     resetOnError: false,
 
+    resetOnResponseError: false,
+
     ignoreExceptions: false,
 
     // -- Authorization --

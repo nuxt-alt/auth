@@ -40,6 +40,9 @@ export default defineNuxtConfig({
 
 ```
 
+## Documentation
+I do not have the resources to host a dedicated documentation page, however I have been making updates to a [Stackblitz](https://stackblitz.com/edit/github-nufjhw-1bec1b) container so you may check there
+
 ## Changes 
 
 The module now uses '@nuxt-alt/http' to function, that module extends ohmyfetch. Please note that if you were using `data` to post data, you now need to use `body` since this is what `ohmyfetch` uses. If you intend to use ssr, please consider using the `@nuxt-alt/proxy` module.
@@ -137,6 +140,24 @@ The default cookie storage options.
 - Default: `storage`
 
 The type of redirection strategy you want to use, `storage` utilizng localStorage for redirects, `query` utilizing the route query parameters.
+
+### `resetOnResponseError`
+
+- Type: `Boolean | Function`
+- Default: `false`
+
+When enabled it will reset when there's a 401 error in any of the responses. You are able to turn this into a function to handle this yourself:
+```ts
+auth: {
+    //... module options
+    resetOnResponseError: (error, auth, scheme) => {
+       if (error.response.status === 401) {
+           scheme.reset?.()
+           auth.redirect('login')
+       }
+   },
+}
+```
 
 ## TypeScript (2.6.0+)
 The user information can be edited like so for TypeScript:

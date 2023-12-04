@@ -28,7 +28,7 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
         const { tokenExpired, refreshTokenExpired, isRefreshable } = auth.check(true);
 
         // -- Authorized --
-        if (!login || insidePage(login) || pageIsInGuestMode) {
+        if (!login || insidePage(login as string) || pageIsInGuestMode) {
             return auth.redirect('home', to)
         }
 
@@ -58,7 +58,7 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
     // -- Guest --
     // (Those passing `callback` at runtime need to mark their callback component
     // with `auth: false` to avoid an unnecessary redirect from callback to login)
-    else if (!pageIsInGuestMode && (!callback || !insidePage(callback))) {
+    else if (!pageIsInGuestMode && (!callback || !insidePage(callback as string))) {
         return auth.redirect('login', to);
     }
 });
