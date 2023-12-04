@@ -61,6 +61,8 @@ export class Auth {
                 redirects[key as keyof typeof this.options.redirect] = value(this, typeof this.ctx.$localePath === 'function' ? this.ctx.$localePath as Function : undefined)
             }
         }
+
+        return redirects;
     }
 
     getStrategy(throwException = true): Scheme {
