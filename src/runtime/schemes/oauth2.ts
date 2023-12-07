@@ -29,7 +29,7 @@ export interface Oauth2SchemeOptions extends SchemeOptions, TokenableSchemeOptio
     clientSecretTransport: 'body' | 'aurthorization_header';
     scope: string | string[];
     state: string;
-    codeChallengeMethod: 'implicit' | 'S256' | 'plain' | '';
+    codeChallengeMethod: 'implicit' | 'S256' | 'plain' | '' | false;
     acrValues: string;
     audience: string;
     autoLogout: boolean;
@@ -77,7 +77,7 @@ const DEFAULTS: SchemePartialOptions<Oauth2SchemeOptions> = {
         property: false,
     },
     responseType: 'token',
-    codeChallengeMethod: 'implicit',
+    codeChallengeMethod: false,
     clientWindow: false,
     clientWindowWidth: 400,
     clientWindowHeight: 600
@@ -215,6 +215,10 @@ export class Oauth2Scheme<OptionsT extends Oauth2SchemeOptions = Oauth2SchemeOpt
             clientWindowHeight: this.options.clientWindowHeight,
             ...options.params,
         };
+
+        if (!opts.code_challenge_method) {
+            delete opts.code_challenge_method;
+        }
 
         if (this.options.organization) {
             opts.organization = this.options.organization;

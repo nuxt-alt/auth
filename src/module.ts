@@ -1,5 +1,5 @@
 import type { ModuleOptions } from './types';
-import { addImports, addPlugin, addPluginTemplate, addTemplate, createResolver, defineNuxtModule, installModule, addRouteMiddleware } from '@nuxt/kit';
+import { addImports, addPluginTemplate, addTemplate, createResolver, defineNuxtModule, installModule, addRouteMiddleware } from '@nuxt/kit';
 import { name, version } from '../package.json';
 import { resolveStrategies } from './resolve';
 import { moduleDefaults } from './options';

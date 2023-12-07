@@ -1,7 +1,7 @@
 import type { ModuleOptions, AuthStore, AuthState, StoreMethod, StoreIncludeOptions } from '../../types';
 import type { NuxtApp } from '#app';
+import type { Pinia, StoreDefinition } from 'pinia';
 import { isUnset, isSet, decodeValue, encodeValue, setH3Cookie } from '../../utils';
-import { defineStore, type Pinia, type StoreDefinition } from 'pinia';
 import { parse, serialize, type CookieSerializeOptions } from 'cookie-es';
 import { useState } from '#imports';
 import { watch, type Ref } from 'vue';
@@ -101,12 +101,13 @@ export class Storage {
     // Local state (reactive)
     // ------------------------------------
 
-    #initState() {
+    async #initState() {
         // Use pinia for local state's if possible
         const pinia = this.ctx.$pinia as Pinia
         this.#piniaEnabled = this.options.stores.pinia!.enabled && !!pinia;
 
         if (this.#piniaEnabled) {
+            const { defineStore } = await import('pinia')
             this.#PiniaStore = defineStore(this.options.stores.pinia?.namespace!, {
                 state: (): AuthState => ({ ...this.options.initialState })
             });
@@ -154,11 +155,11 @@ export class Storage {
 
     watchState(watchKey: string, fn: (value: any) => void) {
         if (this.#piniaEnabled) {
-            watch(() => this.#initPiniaStore[watchKey as keyof AuthStore], (modified, old) => {
+            watch(() => this.#initPiniaStore?.[watchKey as keyof AuthStore], (modified, old) => {
                 fn(modified)
             }, { deep: true })
         } else {
-            watch(() => this.#initStore.value[watchKey], (modified, old) => {
+            watch(() => this.#initStore?.value?.[watchKey], (modified, old) => {
                 fn(modified)
             }, { deep: true })
         }
