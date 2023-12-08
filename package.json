@@ -1,6 +1,6 @@
 {
     "name": "@nuxt-alt/auth",
-    "version": "3.0.3",
+    "version": "3.0.4",
     "description": "An alternative module to @nuxtjs/auth",
     "homepage": "https://github.com/nuxt-alt/auth",
     "author": "Denoder",

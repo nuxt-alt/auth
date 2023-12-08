@@ -10,8 +10,7 @@ export function google(nuxt: Nuxt, strategy: ProviderPartialOptions<GoogleProvid
         scheme: 'oauth2',
         endpoints: {
             authorization: 'https://accounts.google.com/o/oauth2/v2/auth',
-            userInfo: 'https://www.googleapis.com/oauth2/v3/userinfo',
-            token: 'https://oauth2.googleapis.com/token'
+            userInfo: 'https://www.googleapis.com/oauth2/v3/userinfo'
         },
         scope: ['openid', 'profile', 'email'],
     };
