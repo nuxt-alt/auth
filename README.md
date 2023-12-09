@@ -141,6 +141,13 @@ The default cookie storage options.
 
 The type of redirection strategy you want to use, `storage` utilizng localStorage for redirects, `query` utilizing the route query parameters.
 
+### `tokenValidationInterval`
+
+- Type: `Boolean | Number`
+- Default: `false`
+
+This is experimental. If set to true, default interval is 1000ms, otherwise set time in milliseconds. This is how often the module with attempt to validate the token for expiry.
+
 ### `resetOnResponseError`
 
 - Type: `Boolean | Function`

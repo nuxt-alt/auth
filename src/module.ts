@@ -3,7 +3,7 @@ import { addImports, addPluginTemplate, addTemplate, createResolver, defineNuxtM
 import { name, version } from '../package.json';
 import { resolveStrategies } from './resolve';
 import { moduleDefaults } from './options';
-import { getAuthDTS, getAuthPlugin } from './plugin';
+import { getAuthDTS, getAuthPlugin, converter } from './plugin';
 import { defu } from 'defu';
 
 const CONFIG_KEY = 'auth';
@@ -53,6 +53,11 @@ export default defineNuxtModule({
         // Set defaultStrategy
         options.defaultStrategy = options.defaultStrategy || strategies.length ? strategies[0].name : '';
 
+        nuxt.hook('nitro:config', (config) => {
+            config.virtual = config.virtual || {}
+            config.virtual['#nuxt-auth-options'] = `export const config = ${JSON.stringify(options, converter, 2)}`
+        })
+
         // Install http module if not in modules
         if (!nuxt.options.modules.includes('@nuxt-alt/http')) {
             installModule('@nuxt-alt/http')
@@ -91,7 +96,7 @@ export default defineNuxtModule({
 
         // Middleware
         if (options.enableMiddleware) {
-            addRouteMiddleware({ 
+            addRouteMiddleware({
                 name: 'auth',
                 path: resolver.resolve('runtime/core/middleware'),
                 global: options.globalMiddleware

@@ -243,7 +243,7 @@ export class OpenIDConnectScheme<OptionsT extends OpenIDConnectSchemeOptions = O
             });
 
             token = (getProp(response._data, this.options.token!.property) as string) || token;
-            tokenExpiresIn = (getProp(response._data, 'expires_in') as number) || tokenExpiresIn
+            tokenExpiresIn = this.options.token?.maxAge || (getProp(response._data, this.options.token!.expiresProperty) as number) || 1800
             refreshToken = (getProp(response._data, this.options.refreshToken.property!) as string) || refreshToken!;
             idToken = (getProp(response._data, this.options.idToken.property) as string) || idToken;
         }

@@ -41,7 +41,7 @@ export class RefreshToken {
     }
 
     status(): TokenStatus {
-        return new TokenStatus(this.get(), this.#getExpiration());
+        return new TokenStatus(this.get(), this.#getExpiration(), this.scheme.options.refreshToken.httpOnly);
     }
 
     #getExpiration(): number | false {

@@ -6,9 +6,11 @@ export enum TokenStatusEnum {
 
 export class TokenStatus {
     readonly #status: TokenStatusEnum;
+    #isHttpOnly: boolean;
 
-    constructor(token: string | boolean, tokenExpiresAt: number | false) {
+    constructor(token: string | boolean, tokenExpiresAt: number | false, httpOnly: boolean = false) {
         this.#status = this.#calculate(token, tokenExpiresAt);
+        this.#isHttpOnly = httpOnly
     }
 
     unknown(): boolean {
@@ -27,7 +29,7 @@ export class TokenStatus {
         const now = Date.now();
 
         try {
-            if (!token || !tokenExpiresAt) {
+            if ((this.#isHttpOnly && !tokenExpiresAt) || (!this.#isHttpOnly && !token || !tokenExpiresAt)) {
                 return TokenStatusEnum.UNKNOWN;
             }
         } catch (error) {
