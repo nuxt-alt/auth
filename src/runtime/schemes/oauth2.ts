@@ -60,9 +60,10 @@ const DEFAULTS: SchemePartialOptions<Oauth2SchemeOptions> = {
     scope: [],
     token: {
         property: 'access_token',
+        expiresProperty: 'expires_in',
         type: 'Bearer',
         name: 'Authorization',
-        maxAge: 1800,
+        maxAge: false,
         global: true,
         prefix: '_token.',
         expirationPrefix: '_token_expiration.',
@@ -72,6 +73,7 @@ const DEFAULTS: SchemePartialOptions<Oauth2SchemeOptions> = {
         maxAge: 60 * 60 * 24 * 30,
         prefix: '_refresh_token.',
         expirationPrefix: '_refresh_token_expiration.',
+        httpOnly: false,
     },
     user: {
         property: false,
@@ -119,11 +121,11 @@ export class Oauth2Scheme<OptionsT extends Oauth2SchemeOptions = Oauth2SchemeOpt
     protected get redirectURI(): string {
         const basePath = useRuntimeConfig().app.baseURL || '';
         const path = normalizePath(basePath + '/' + this.$auth.options.redirect.callback); // Don't pass in context since we want the base path
-        return this.options.redirectUri || joinURL(requrl(this.req), path);
+        return this.options.redirectUri || joinURL(process.server ? requrl(this.req) : globalThis.location.origin, path);
     }
 
     protected get logoutRedirectURI(): string {
-        return (this.options.logoutRedirectUri || joinURL(requrl(this.req), this.$auth.options.redirect.logout as string));
+        return (this.options.logoutRedirectUri || joinURL(process.server ? requrl(this.req) : globalThis.location.origin, this.$auth.options.redirect.logout as string));
     }
 
     check(checkStatus = false): SchemeCheck {
@@ -414,7 +416,7 @@ export class Oauth2Scheme<OptionsT extends Oauth2SchemeOptions = Oauth2SchemeOpt
 
             token = (getProp(response._data, this.options.token!.property) as string) || token;
             refreshToken = (getProp(response._data, this.options.refreshToken.property) as string) || refreshToken!;
-            tokenExpiresIn = (getProp(response._data, 'expires_in') as number) || tokenExpiresIn
+            tokenExpiresIn = this.options.token?.maxAge || (getProp(response._data, this.options.token!.expiresProperty) as number) || 1800;
         }
 
         if (!token || !token.length) {
@@ -446,7 +448,7 @@ export class Oauth2Scheme<OptionsT extends Oauth2SchemeOptions = Oauth2SchemeOpt
         const refreshToken = this.refreshToken.get();
 
         // Refresh token is required but not available
-        if (!refreshToken) {
+        if (!refreshToken && !this.options.refreshToken.httpOnly) {
             return;
         }
 
@@ -463,6 +465,18 @@ export class Oauth2Scheme<OptionsT extends Oauth2SchemeOptions = Oauth2SchemeOpt
         // Delete current token from the request header before refreshing
         this.requestHandler.clearHeader();
 
+        let body = new URLSearchParams({
+            refresh_token: removeTokenPrefix(refreshToken, this.options.token!.type) as string,
+            scope: this.scope,
+            client_id: this.options.clientId as string,
+            grant_type: 'refresh_token',
+            redirect_uri: this.redirectURI
+        })
+
+        if (this.options.refreshToken.httpOnly) {
+            body.delete('refresh_token')
+        }
+
         const response = await this.$auth.request({
             method: 'post',
             url: this.options.endpoints.token,
@@ -470,12 +484,7 @@ export class Oauth2Scheme<OptionsT extends Oauth2SchemeOptions = Oauth2SchemeOpt
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded'
             },
-            body: new URLSearchParams({
-                refresh_token: removeTokenPrefix(refreshToken, this.options.token!.type) as string,
-                scope: this.scope,
-                client_id: this.options.clientId as string,
-                grant_type: 'refresh_token',
-            }),
+            body: body
         })
         .catch((error) => {
             this.$auth.callOnError(error, { method: 'refreshToken' });
@@ -488,10 +497,12 @@ export class Oauth2Scheme<OptionsT extends Oauth2SchemeOptions = Oauth2SchemeOpt
     }
 
     protected updateTokens(response: HTTPResponse<any>): void {
+        let tokenExpiresIn: number | boolean = false
         const token = getProp(response._data, this.options.token!.property) as string;
         const refreshToken = getProp(response._data, this.options.refreshToken.property) as string;
+        tokenExpiresIn = this.options.token?.maxAge || (getProp(response._data, this.options.token!.expiresProperty) as number) || 1800
 
-        this.token.set(token);
+        this.token.set(token, tokenExpiresIn);
 
         if (refreshToken) {
             this.refreshToken.set(refreshToken);

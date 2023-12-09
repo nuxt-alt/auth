@@ -155,11 +155,11 @@ export class Storage {
 
     watchState(watchKey: string, fn: (value: any) => void) {
         if (this.#piniaEnabled) {
-            watch(() => this.#initPiniaStore?.[watchKey as keyof AuthStore], (modified, old) => {
+            watch(() => this.#initPiniaStore?.[watchKey as keyof AuthStore], (modified) => {
                 fn(modified)
             }, { deep: true })
         } else {
-            watch(() => this.#initStore?.value?.[watchKey], (modified, old) => {
+            watch(() => this.#initStore?.value?.[watchKey], (modified) => {
                 fn(modified)
             }, { deep: true })
         }

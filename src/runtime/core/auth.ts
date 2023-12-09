@@ -1,4 +1,5 @@
-import type { HTTPRequest, HTTPResponse, Scheme, SchemeCheck, TokenableScheme, RefreshableScheme, ModuleOptions, Route, AuthState } from '../../types';
+import type { HTTPRequest, HTTPResponse, Scheme, SchemeCheck, TokenableScheme, RefreshableScheme, ModuleOptions, Route, AuthState, } from '../../types';
+import { ExpiredAuthSessionError } from '../inc/expired-auth-session-error';
 import type { NuxtApp } from '#app';
 import type { Router } from 'vue-router';
 import { isSet, getProp, isRelativeURL, routeMeta, hasOwn } from '../../utils';
@@ -18,6 +19,7 @@ export class Auth {
     error?: Error;
     #errorListeners?: ErrorListener[] = [];
     #redirectListeners?: RedirectListener[] = [];
+    #tokenValidationInterval?: NodeJS.Timeout
 
     constructor(ctx: NuxtApp, options: ModuleOptions) {
         this.ctx = ctx;
@@ -63,6 +65,53 @@ export class Auth {
         }
 
         return redirects;
+    }
+
+    checkTokenValidation() {
+        this.#tokenValidationInterval = setInterval(async () => {
+            // Perform scheme checks.
+            const { valid, tokenExpired, refreshTokenExpired, isRefreshable } = this.check(true);
+            let isValid = valid;
+
+            // Refresh token has expired. There is no way to refresh. Force reset.
+            if (refreshTokenExpired) {
+                this.reset?.();
+                clearInterval(this.#tokenValidationInterval)
+                throw new ExpiredAuthSessionError();
+            }
+
+            // Token has expired.
+            if (tokenExpired) {
+                // Refresh token is not available. Force reset.
+                if (!isRefreshable) {
+                    this.reset();
+                    clearInterval(this.#tokenValidationInterval)
+                    throw new ExpiredAuthSessionError();
+                }
+
+                // Refresh token is available. Attempt refresh.
+                isValid = await this.refreshStrategy.refreshController
+                    .handleRefresh()
+                    .then(() => true)
+                    .catch(() => {
+                        // Tokens couldn't be refreshed. Force reset.
+                        this.reset();
+                        clearInterval(this.#tokenValidationInterval)
+                        throw new ExpiredAuthSessionError();
+                    });
+            }
+
+            // Sync token
+            const token = this.tokenStrategy.token;
+
+            // Scheme checks were performed, but returned that is not valid.
+            if (!isValid) {
+                if (token && !token.get()) {
+                    clearInterval(this.#tokenValidationInterval)
+                    throw new ExpiredAuthSessionError();
+                }
+            }
+        }, typeof this.options.tokenValidationInterval === 'number' ? this.options.tokenValidationInterval : 1000)
     }
 
     getStrategy(throwException = true): Scheme {
@@ -138,11 +187,21 @@ export class Auth {
         }
         finally {
             if (process.client && this.options.watchLoggedIn) {
+                const enableTokenValidation = !this.#tokenValidationInterval && this.refreshStrategy.token && this.options.tokenValidationInterval
+
                 this.$storage.watchState('loggedIn', (loggedIn: boolean) => {
                     if (hasOwn((this.ctx.$router as Router).currentRoute.value.meta, 'auth') && !routeMeta((this.ctx.$router as Router).currentRoute.value, 'auth', false)) {
                         this.redirect(loggedIn ? 'home' : 'logout');
                     }
+
+                    if (enableTokenValidation && loggedIn) {
+                        this.checkTokenValidation()
+                    }
                 })
+
+                if (enableTokenValidation && this.loggedIn) {
+                    this.checkTokenValidation()
+                }
             }
         }
     }

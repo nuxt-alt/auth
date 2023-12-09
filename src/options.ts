@@ -28,6 +28,8 @@ export const moduleDefaults: ModuleOptions = {
 
     watchLoggedIn: true,
 
+    tokenValidationInterval: false,
+
     redirect: {
         login: '/login',
         logout: '/',

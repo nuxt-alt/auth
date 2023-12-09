@@ -94,7 +94,7 @@ export class RequestHandler {
                 if (typeof this.auth.options.resetOnResponseError === 'function') {
                     this.auth.options.resetOnResponseError(error, this.auth, this.scheme)
                 }
-                else if (this.auth.options.resetOnResponseError && error.response.status === 401) {
+                else if (this.auth.options.resetOnResponseError && error?.response?.status === 401) {
                     this.scheme.reset?.()
                     throw new ExpiredAuthSessionError();
                 }

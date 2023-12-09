@@ -50,6 +50,7 @@ export interface Scheme<OptionsT extends SchemeOptions = SchemeOptions> {
 
 export interface TokenOptions {
     property: string;
+    expiresProperty: string;
     type: string | false;
     name: string;
     maxAge: number | false;
@@ -91,6 +92,7 @@ export interface RefreshTokenOptions {
     tokenRequired: boolean;
     prefix: string;
     expirationPrefix: string;
+    httpOnly: boolean;
 }
 
 export interface RefreshableSchemeOptions extends TokenableSchemeOptions {

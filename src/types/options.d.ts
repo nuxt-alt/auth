@@ -14,6 +14,7 @@ export interface ModuleOptions {
     resetOnResponseError: boolean | ((error: any, auth: Auth, scheme: TokenableScheme | RefreshableScheme) => void);
     defaultStrategy: string | undefined;
     watchLoggedIn: boolean;
+    tokenValidationInterval: boolean | number;
     rewriteRedirects: boolean;
     fullPathRedirect: boolean;
     redirectStrategy?: 'query' | 'storage';

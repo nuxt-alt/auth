@@ -91,7 +91,7 @@ export default defineNuxtPlugin({
 })`
 }
 
-function converter(key: string, val: any) {
+export function converter(key: string, val: any) {
     if (val && val.constructor === RegExp || typeof val === 'function') {
         return String(val)
     }

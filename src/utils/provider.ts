@@ -12,7 +12,7 @@ export function assignDefaults<SOptions extends StrategyOptions>(strategy: SOpti
 export function addAuthorize<SOptions extends StrategyOptions<Oauth2SchemeOptions>>(nuxt: Nuxt, strategy: SOptions, useForms: boolean = false): void {
     // Get clientSecret, clientId, endpoints.token and audience
     const clientSecret = strategy.clientSecret;
-    const clientID = strategy.clientId;
+    const clientId = strategy.clientId;
     const tokenEndpoint = strategy.endpoints!.token;
     const audience = strategy.audience;
 
@@ -27,14 +27,14 @@ export function addAuthorize<SOptions extends StrategyOptions<Oauth2SchemeOption
     strategy.responseType = 'code';
 
     addTemplate({
-        filename: 'auth-authorize.ts',
+        filename: `authorize-${strategy.name}.ts`,
         write: true,
-        getContents: () => authorizeMiddlewareFile({
+        getContents: () => authorizeGrant({
             endpoint,
             strategy,
             useForms,
             clientSecret,
-            clientID,
+            clientId,
             tokenEndpoint,
             audience,
         }),
@@ -43,7 +43,7 @@ export function addAuthorize<SOptions extends StrategyOptions<Oauth2SchemeOption
     addServerHandler({
         route: endpoint,
         method: 'post',
-        handler: join(nuxt.options.buildDir, 'auth-authorize.ts'),
+        handler: join(nuxt.options.buildDir, `authorize-${strategy.name}.ts`),
     })
 }
 
@@ -62,9 +62,9 @@ export function initializePasswordGrantFlow<SOptions extends StrategyOptions<Ref
     strategy.endpoints!.refresh!.url = endpoint;
 
     addTemplate({
-        filename: 'auth-passwordGrant.ts',
+        filename: `password-${strategy.name}.ts`,
         write: true,
-        getContents: () => passwordGrantMiddlewareFile({
+        getContents: () => passwordGrant({
             endpoint,
             strategy,
             clientSecret,
@@ -76,7 +76,7 @@ export function initializePasswordGrantFlow<SOptions extends StrategyOptions<Ref
     addServerHandler({
         route: endpoint,
         method: 'post',
-        handler: join(nuxt.options.buildDir, 'auth-passwordGrant.ts'),
+        handler: join(nuxt.options.buildDir, `password-${strategy.name}.ts`),
     })
 }
 
@@ -104,9 +104,10 @@ export function assignAbsoluteEndpoints<SOptions extends StrategyOptions<(Tokena
     }
 }
 
-export function authorizeMiddlewareFile(opt: any): string {
-return `import { defineEventHandler, readBody, createError } from 'h3'
+export function authorizeGrant(opt: any): string {
+return `import { defineEventHandler, readBody, createError, getCookie } from 'h3'
 import { createInstance } from '@refactorjs/ofetch'
+import { config } from '#nuxt-auth-options'
 
 const options = ${JSON.stringify(opt)}
 
@@ -120,6 +121,9 @@ export default defineEventHandler(async (event) => {
         refresh_token: refreshToken
     } = await readBody(event)
 
+    const cookieName = config.stores.cookie.prefix + (options.strategy?.refreshToken?.prefix || '_refresh_token.') + options.strategy.name
+    const serverRefreshToken = getCookie(event, cookieName)
+
     // Grant type is authorization code, but code is not available
     if (grantType === 'authorization_code' && !code) {
         return createError({
@@ -129,7 +133,7 @@ export default defineEventHandler(async (event) => {
     }
 
     // Grant type is refresh token, but refresh token is not available
-    if (grantType === 'refresh_token' && !refreshToken) {
+    if ((grantType === 'refresh_token' && !options.strategy.refreshToken.httpOnly && !refreshToken) || (grantType === 'refresh_token' && options.strategy.refreshToken.httpOnly && !serverRefreshToken)) {
         return createError({
             statusCode: 500,
             message: 'Missing refresh token'
@@ -137,15 +141,19 @@ export default defineEventHandler(async (event) => {
     }
 
     let body = {
-        client_id: options.clientID,
+        client_id: options.clientId,
         client_secret: options.clientSecret,
-        refresh_token: refreshToken,
+        refresh_token: options.strategy.refreshToken.httpOnly ? serverRefreshToken : refreshToken,
         grant_type: grantType,
         response_type: responseType,
         redirect_uri: redirectUri,
         audience: options.audience,
         code_verifier: codeVerifier,
         code
+    }
+
+    if (grantType !== 'refresh_token') {
+        delete body.refresh_token
     }
 
     const headers = {
@@ -155,13 +163,12 @@ export default defineEventHandler(async (event) => {
 
     if (options.strategy.clientSecretTransport === 'authorization_header') {
         // @ts-ignore
-        headers['Authorization'] = 'Basic ' + Buffer.from(options.clientID + ':' + options.clientSecret).toString('base64')
+        headers['Authorization'] = 'Basic ' + Buffer.from(options.clientId + ':' + options.clientSecret).toString('base64')
         // client_secret is transported in auth header
         delete body.client_secret
     }
 
     if (options.useForms) {
-        // @ts-ignore
         body = new URLSearchParams(body).toString()
         headers['Content-Type'] = 'application/x-www-form-urlencoded'
     }
@@ -172,19 +179,39 @@ export default defineEventHandler(async (event) => {
         body: body,
         headers
     })
-    .then((response) => event.node.res.end(JSON.stringify(response._data)))
+    .then((response) => {
+        if (config.stores.cookie.enabled) {
+            const cookieValue = response._data[options.strategy?.refreshToken?.property || 'refresh_token']
+
+            // Create the cookie options string
+            // setCookie() doesnt work here for some reason
+            let cookieOptions = Object.keys({ ...config.stores.cookie.options, httpOnly: true }).reduce((accumulated, currentOptionKey) => {
+                if (currentOptionKey === 'maxAge') {
+                    return \`\${accumulated}; Max-Age=\${config.stores.cookie.options[currentOptionKey]}\`;
+                }
+                if (config.stores.cookie.options[currentOptionKey] === true) {
+                    return \`\${accumulated}; \${currentOptionKey.charAt(0).toUpperCase() + currentOptionKey.slice(1)}\`;
+                }
+                return \`\${accumulated}; \${currentOptionKey.charAt(0).toUpperCase() + currentOptionKey.slice(1)}=\${config.stores.cookie.options[currentOptionKey]}\`;
+            }, '');
+            
+            const cookieString = \`\${cookieName}=\${cookieValue}\${cookieOptions}\`;
+
+            event.node.res.setHeader('Set-Cookie', cookieString)
+        }
+
+        return event.node.res.end(JSON.stringify(response._data))
+    })
     .catch((error) => {
-        console.log(error)
-        return createError({
-            statusCode: error.response.status,
-            message: error.response.data,
-        })
+        const data = error.response?._data || error.response?.data
+        event.node.res.statusCode = error.response?.status
+        return event.node.res.end(JSON.stringify(data))
     })
 })
 `;
 }
 
-export function passwordGrantMiddlewareFile(opt: any): string {
+export function passwordGrant(opt: any): string {
 return `import requrl from 'requrl';
 import { defineEventHandler, readBody, createError } from 'h3';
 import { createInstance } from '@refactorjs/ofetch';
@@ -236,11 +263,9 @@ export default defineEventHandler(async (event) => {
     })
     .then((response) => event.node.res.end(JSON.stringify(response._data)))
     .catch((error) => {
-        console.log(error)
-        return createError({
-            statusCode: error.response.status,
-            message: error.response.data,
-        })
+        const data = error.response?._data || error.response?.data
+        event.node.res.statusCode = error.response?.status
+        event.node.res.end(JSON.stringify(data))
     })
 })
 `;
