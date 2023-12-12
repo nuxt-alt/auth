@@ -30,6 +30,7 @@ export function addAuthorize<SOptions extends StrategyOptions<Oauth2SchemeOption
         filename: `authorize-${strategy.name}.ts`,
         write: true,
         getContents: () => authorizeGrant({
+            baseURL: nuxt.options.http?.baseURL,
             strategy,
             useForms,
             clientSecret,
@@ -296,6 +297,10 @@ export default defineEventHandler(async (event) => {
         serverURL = 'http://[' + host + ']:' + port;
     } else {
         serverURL = 'http://' + host + ':' + port;
+    }
+
+    if (!host) {
+        serverURL = options.baseURL
     }
 
     const response = await event.$http.post(authorizationURL, {
