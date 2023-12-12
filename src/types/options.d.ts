@@ -24,11 +24,11 @@ export interface ModuleOptions {
             namespace?: string
         };
         pinia: {
-            enabled: boolean;
+            enabled?: boolean;
             namespace?: string;
         };
         cookie: {
-            enabled: boolean;
+            enabled?: boolean;
             prefix?: string;
             options?: CookieSerializeOptions;
         };
@@ -37,7 +37,7 @@ export interface ModuleOptions {
             prefix?: string; 
         };
         session: { 
-            enabled: boolean;
+            enabled?: boolean;
             prefix?: string;
         };
     }>,

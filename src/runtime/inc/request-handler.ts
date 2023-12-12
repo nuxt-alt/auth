@@ -9,6 +9,7 @@ export class RequestHandler {
     http: FetchInstance;
     requestInterceptor: number | undefined | null;
     responseInterceptor: number | undefined | null;
+    currentToken: string
 
     constructor(scheme: TokenableScheme | RefreshableScheme, http: FetchInstance, auth: Auth) {
         this.scheme = scheme;
@@ -16,11 +17,11 @@ export class RequestHandler {
         this.auth = auth;
         this.requestInterceptor = null;
         this.responseInterceptor = null;
+        this.currentToken = this.auth.$storage.memory.value?.[this.scheme.options.token!.prefix + this.scheme.options.name] as string
     }
 
     setHeader(token: string): void {
         if (this.scheme.options.token && this.scheme.options.token.global) {
-            // Set Authorization token for all fetch requests
             this.http.setHeader(this.scheme.options.token.name, token);
         }
     }
@@ -35,6 +36,12 @@ export class RequestHandler {
     initializeRequestInterceptor(refreshEndpoint?: string | Request): void {
         this.requestInterceptor = this.http.interceptors.request.use(
             async (config: FetchConfig) => {
+                // Set the token on the client side
+                
+                if (this.scheme.options.token && this.scheme.options.token.httpOnly && this.currentToken) {
+                    this.setHeader(this.currentToken)
+                }
+
                 // Don't intercept refresh token requests
                 if ((this.scheme.options.token && !this.#needToken(config)) || config.url === refreshEndpoint) {
                     return config;

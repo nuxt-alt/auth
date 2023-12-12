@@ -36,12 +36,20 @@ export class RefreshToken {
     }
 
     reset(): void {
+        this.#resetSSRToken()
         this.#setToken(false);
         this.#setExpiration(false);
     }
 
     status(): TokenStatus {
         return new TokenStatus(this.get(), this.#getExpiration(), this.scheme.options.refreshToken.httpOnly);
+    }
+
+    #resetSSRToken() {
+        if (this.scheme.options.ssr && this.scheme.options.refreshToken?.httpOnly) {
+            const key = this.scheme.options.refreshToken!.prefix + this.scheme.name;
+            this.scheme.$auth.request({ baseURL: '', url: '/_auth/reset', body: new URLSearchParams({ token: key }), method: 'POST' })
+        }
     }
 
     #getExpiration(): number | false {

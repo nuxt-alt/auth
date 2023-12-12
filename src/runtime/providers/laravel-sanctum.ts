@@ -1,7 +1,8 @@
 import type { ProviderPartialOptions, HTTPRequest, ProviderOptions } from '../../types';
 import type { CookieSchemeOptions } from '..';
 import type { Nuxt } from '@nuxt/schema';
-import { assignAbsoluteEndpoints, assignDefaults } from '../../utils/provider';
+import { assignAbsoluteEndpoints, assignDefaults, addLocalAuthorize } from '../../utils/provider';
+import { LOCALDEFAULTS } from '../../resolve';
 
 export interface LaravelSanctumProviderOptions extends ProviderOptions, CookieSchemeOptions {}
 
@@ -10,7 +11,7 @@ export function laravelSanctum(nuxt: Nuxt, strategy: ProviderPartialOptions<Lara
         credentials: 'include'
     };
 
-    const DEFAULTS: typeof strategy = {
+    const DEFAULTS = Object.assign(LOCALDEFAULTS, {
         scheme: 'cookie',
         name: 'laravelSanctum',
         cookie: {
@@ -24,6 +25,10 @@ export function laravelSanctum(nuxt: Nuxt, strategy: ProviderPartialOptions<Lara
             login: {
                 ...endpointDefaults,
                 url: '/login',
+            },
+            refresh: {
+                ...endpointDefaults,
+                url: '/refresh'
             },
             logout: {
                 ...endpointDefaults,
@@ -41,11 +46,16 @@ export function laravelSanctum(nuxt: Nuxt, strategy: ProviderPartialOptions<Lara
         token: {
             type: 'Bearer',
         }
-    };
+    })
 
-    assignDefaults(strategy, DEFAULTS)
+    assignDefaults(strategy, DEFAULTS as typeof strategy)
 
     if (strategy.url) {
         assignAbsoluteEndpoints(strategy)
     }
+
+    if (strategy.scheme === 'refresh') {
+        addLocalAuthorize(nuxt, strategy);
+    }
+
 }

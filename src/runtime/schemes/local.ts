@@ -35,10 +35,11 @@ const DEFAULTS: SchemePartialOptions<LocalSchemeOptions> = {
         },
     },
     token: {
+        expiresProperty: 'expires_in',
         property: 'token',
         type: 'Bearer',
         name: 'Authorization',
-        maxAge: 1800,
+        maxAge: false,
         global: true,
         required: true,
         prefix: '_token.',
@@ -65,7 +66,7 @@ export class LocalScheme<OptionsT extends LocalSchemeOptions = LocalSchemeOption
         this.token = new Token(this, this.$auth.$storage);
 
         // Initialize Request Interceptor
-        this.requestHandler = new RequestHandler(this, this.$auth.ctx.$http, $auth);
+        this.requestHandler = new RequestHandler(this, process.server ? this.$auth.ctx.ssrContext!.event.$http : this.$auth.ctx.$http, $auth);
     }
 
     check(checkStatus = false): SchemeCheck {
@@ -144,6 +145,10 @@ export class LocalScheme<OptionsT extends LocalSchemeOptions = LocalSchemeOption
             endpoint.body.scope = this.options.scope;
         }
 
+        if (this.options.ssr) {
+            endpoint.baseURL = ''
+        }
+
         // Make login request
         const response = await this.$auth.request(endpoint, this.options.endpoints.login);
 
@@ -210,8 +215,8 @@ export class LocalScheme<OptionsT extends LocalSchemeOptions = LocalSchemeOption
         }
 
         // But reset regardless
+        this.$auth.reset();
         this.$auth.redirect('logout');
-        return this.$auth.reset();
     }
 
     reset({ resetInterceptor = true } = {}): void {
@@ -228,9 +233,12 @@ export class LocalScheme<OptionsT extends LocalSchemeOptions = LocalSchemeOption
     }
 
     protected updateTokens(response: HTTPResponse<any>): void {
+        // recommended accessToken lifetime
+        let tokenExpiresIn: number | boolean = false
         const token = this.options.token?.required ? this.extractToken(response) : true;
+        tokenExpiresIn = this.options.token?.maxAge || (getProp(response._data, this.options.token!.expiresProperty) as number);
 
-        this.token.set(token);
+        this.token.set(token, tokenExpiresIn);
     }
 
     protected initializeRequestInterceptor(): void {
