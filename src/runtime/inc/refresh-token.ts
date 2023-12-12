@@ -19,7 +19,7 @@ export class RefreshToken {
         return this.$storage.getUniversal(key) as string | boolean;
     }
 
-    set(tokenValue: string | boolean): string | boolean {
+    set(tokenValue: string | boolean): string | boolean | void | null | undefined {
         const refreshToken = addTokenPrefix(tokenValue, this.scheme.options.refreshToken.type);
 
         this.#setToken(refreshToken);
@@ -28,7 +28,7 @@ export class RefreshToken {
         return refreshToken;
     }
 
-    sync(): string | boolean {
+    sync(): string | boolean | void | null | undefined {
         const refreshToken = this.#syncToken();
         this.#syncExpiration();
 
@@ -37,15 +37,15 @@ export class RefreshToken {
 
     reset(): void {
         this.#resetSSRToken()
-        this.#setToken(false);
-        this.#setExpiration(false);
+        this.#setToken(undefined);
+        this.#setExpiration(undefined);
     }
 
     status(): TokenStatus {
         return new TokenStatus(this.get(), this.#getExpiration(), this.scheme.options.refreshToken.httpOnly);
     }
 
-    #resetSSRToken() {
+    #resetSSRToken(): void {
         if (this.scheme.options.ssr && this.scheme.options.refreshToken?.httpOnly) {
             const key = this.scheme.options.refreshToken!.prefix + this.scheme.name;
             this.scheme.$auth.request({ baseURL: '', url: '/_auth/reset', body: new URLSearchParams({ token: key }), method: 'POST' })
@@ -58,19 +58,19 @@ export class RefreshToken {
         return this.$storage.getUniversal(key) as number | false;
     }
 
-    #setExpiration(expiration: number | false): number | false {
+    #setExpiration(expiration: number | false | undefined | null): number | false | void | null | undefined {
         const key = this.scheme.options.refreshToken.expirationPrefix + this.scheme.name;
 
-        return this.$storage.setUniversal(key, expiration) as number | false;
+        return this.$storage.setUniversal(key, expiration);
     }
 
     #syncExpiration(): number | false {
         const key = this.scheme.options.refreshToken.expirationPrefix + this.scheme.name;
 
-        return this.$storage.syncUniversal(key) as number | false;
+        return this.$storage.syncUniversal(key);
     }
 
-    #updateExpiration(refreshToken: string | boolean): number | false | void {
+    #updateExpiration(refreshToken: string | boolean): number | false | void | null | undefined {
         let refreshTokenExpiration: number;
         const tokenIssuedAtMillis = Date.now();
         const tokenTTLMillis = Number(this.scheme.options.refreshToken.maxAge) * 1000;
@@ -91,13 +91,13 @@ export class RefreshToken {
         return this.#setExpiration(refreshTokenExpiration || false);
     }
 
-    #setToken(refreshToken: string | boolean): string | boolean {
+    #setToken(refreshToken: string | boolean | undefined | null): string | boolean | void | null | undefined {
         const key = this.scheme.options.refreshToken.prefix + this.scheme.name;
 
-        return this.$storage.setUniversal(key, refreshToken) as string | boolean;
+        return this.$storage.setUniversal(key, refreshToken);
     }
 
-    #syncToken(): string | boolean {
+    #syncToken(): string | boolean | void | null | undefined {
         const key = this.scheme.options.refreshToken.prefix + this.scheme.name;
 
         return this.$storage.syncUniversal(key) as string | boolean;
