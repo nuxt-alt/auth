@@ -2,6 +2,7 @@ import type { RefreshTokenOptions, TokenOptions, UserOptions, RecursivePartial, 
 import type { Oauth2SchemeOptions, RefreshSchemeOptions } from '..';
 import type { Nuxt } from '@nuxt/schema';
 import { assignDefaults, addAuthorize, initializePasswordGrantFlow, assignAbsoluteEndpoints } from '../../utils/provider';
+import { LOCALDEFAULTS } from '../../resolve';
 
 export interface LaravelPassportProviderOptions extends ProviderOptions, Oauth2SchemeOptions {
     url: string;
@@ -30,7 +31,7 @@ export function laravelPassport(nuxt: Nuxt, strategy: PartialPassportOptions | P
         token: TokenOptions;
         refreshToken: RefreshTokenOptions;
         user: UserOptions;
-    }> = {
+    }> = Object.assign(LOCALDEFAULTS, {
         name: 'laravelPassport',
         token: {
             property: 'access_token',
@@ -46,7 +47,7 @@ export function laravelPassport(nuxt: Nuxt, strategy: PartialPassportOptions | P
         user: {
             property: false,
         },
-    };
+    })
 
     let DEFAULTS: typeof strategy
 

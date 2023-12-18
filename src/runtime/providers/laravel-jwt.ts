@@ -2,6 +2,7 @@ import type { ProviderPartialOptions, ProviderOptions } from '../../types';
 import type { RefreshSchemeOptions } from '..';
 import type { Nuxt } from '@nuxt/schema';
 import { assignDefaults, assignAbsoluteEndpoints } from '../../utils/provider';
+import { LOCALDEFAULTS } from '../../resolve';
 
 export interface LaravelJWTProviderOptions extends ProviderOptions, RefreshSchemeOptions {
     url: string;
@@ -14,7 +15,7 @@ export function laravelJWT(nuxt: Nuxt, strategy: ProviderPartialOptions<LaravelJ
         throw new Error('url is required for laravel jwt!');
     }
 
-    const DEFAULTS: typeof strategy = {
+    const DEFAULTS = Object.assign(LOCALDEFAULTS, {
         name: 'laravelJWT',
         scheme: 'laravelJWT',
         endpoints: {
@@ -47,9 +48,9 @@ export function laravelJWT(nuxt: Nuxt, strategy: ProviderPartialOptions<LaravelJ
         },
         clientId: false,
         grantType: false,
-    };
+    })
 
-    assignDefaults(strategy, DEFAULTS);
+    assignDefaults(strategy, DEFAULTS as typeof strategy);
 
     assignAbsoluteEndpoints(strategy);
 }

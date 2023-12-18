@@ -18,7 +18,7 @@ const DEFAULTS: SchemePartialOptions<RefreshSchemeOptions> = {
     endpoints: {
         refresh: {
             url: '/api/auth/refresh',
-            method: 'post',
+            method: 'POST',
         },
     },
     refreshToken: {
@@ -29,6 +29,7 @@ const DEFAULTS: SchemePartialOptions<RefreshSchemeOptions> = {
         tokenRequired: false,
         prefix: '_refresh_token.',
         expirationPrefix: '_refresh_token_expiration.',
+        httpOnly: false,
     },
     autoLogout: false,
 };
@@ -37,7 +38,6 @@ export class RefreshScheme<OptionsT extends RefreshSchemeOptions = RefreshScheme
 {
     refreshToken: RefreshToken;
     refreshController: RefreshController;
-    refreshRequest: Promise<HTTPResponse<any>> | null = null
 
     constructor($auth: Auth, options: SchemePartialOptions<RefreshSchemeOptions>) {
         super($auth, options, DEFAULTS);
@@ -59,10 +59,10 @@ export class RefreshScheme<OptionsT extends RefreshSchemeOptions = RefreshScheme
 
         // Sync tokens
         const token = this.token.sync();
-        const refreshToken = this.refreshToken.sync();
+        this.refreshToken.sync();
 
-        // Token and refresh token are required but not available
-        if (!token || !refreshToken) {
+        // Token is required but not available
+        if (!token) {
             return response;
         }
 
@@ -131,52 +131,33 @@ export class RefreshScheme<OptionsT extends RefreshSchemeOptions = RefreshScheme
             this.requestHandler.clearHeader();
         }
 
-        const endpoint: {
-            body: {
-                [key: string]: string | boolean | undefined
-                client_id: string | undefined,
-                grant_type: string | undefined,
-            },
-        } = {
-            body: {
-                client_id: undefined,
-                grant_type: undefined,
-            },
-        };
+        const endpoint: HTTPRequest = {}
 
         // Add refresh token to payload if required
-        if (this.options.refreshToken.required && this.options.refreshToken.data) {
-            endpoint.body[this.options.refreshToken.data] = this.refreshToken.get();
+        if (this.options.refreshToken.required && this.options.refreshToken.data && !this.options.refreshToken.httpOnly) {
+            endpoint.body![this.options.refreshToken.data] = this.refreshToken.get();
         }
 
         // Add client id to payload if defined
         if (this.options.clientId) {
-            endpoint.body.client_id = this.options.clientId;
+            endpoint.body!.client_id = this.options.clientId;
         }
 
         // Add grant type to payload if defined
         if (this.options.grantType) {
-            endpoint.body.grant_type = 'refresh_token';
+            endpoint.body!.grant_type = 'refresh_token';
         }
 
-        cleanObj(endpoint.body);
+        cleanObj(endpoint.body!);
 
-        this.refreshRequest = this.refreshRequest || this.$auth.request(endpoint, this.options.endpoints.refresh) as Promise<HTTPResponse<any>>
-  
-        return this.refreshRequest
-            .then((response) => {
-                // Update tokens
-                this.updateTokens(response, { isRefreshing: true })
-                return response
-            })
-            .catch((error) => {
-                this.$auth.callOnError(error, { method: 'refreshToken' })
-                return Promise.reject(error)
-            })
-            .finally(() => {
-                // Reset the refresh request
-                this.refreshRequest = null
-            })
+        // @ts-ignore
+        if (this.options.ssr) {
+            endpoint.baseURL = ''
+        }
+
+        const response = await this.$auth.request(endpoint, this.options.endpoints.refresh);
+
+        this.updateTokens(response);
     }
 
     setUserToken(token: string | boolean, refreshToken?: string | boolean): Promise<HTTPResponse<any> | void> {
@@ -204,15 +185,15 @@ export class RefreshScheme<OptionsT extends RefreshSchemeOptions = RefreshScheme
         return getProp(response._data, this.options.refreshToken.property) as string
     }
 
-    protected updateTokens(response: HTTPResponse<any>, { isRefreshing = false, updateOnRefresh = true } = {}): void {
+    protected updateTokens(response: HTTPResponse<any>): void {
+        let tokenExpiresIn: number | boolean = false
         const token = this.options.token?.required ? this.extractToken(response) : true;
         const refreshToken = this.options.refreshToken.required ? this.extractRefreshToken(response) : true;
+        tokenExpiresIn = this.options.token?.maxAge || (getProp(response._data, this.options.token!.expiresProperty) as number);
 
-        this.token.set(token);
+        this.token.set(token, tokenExpiresIn);
 
-        // Update refresh token if defined and if `isRefreshing` is `false`
-        // If `isRefreshing` is `true`, then only update if `updateOnRefresh` is also `true`
-        if (refreshToken && (!isRefreshing || (isRefreshing && updateOnRefresh))) {
+        if (refreshToken) {
             this.refreshToken.set(refreshToken);
         }
     }

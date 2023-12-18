@@ -18,6 +18,7 @@ export interface EndpointsOption {
 
 export interface SchemeOptions {
     name?: string;
+    ssr?: boolean;
 }
 
 export type SchemePartialOptions<Options extends SchemeOptions> = PartialExcept<Options, keyof SchemeOptions>;
@@ -58,6 +59,7 @@ export interface TokenOptions {
     required: boolean;
     prefix: string;
     expirationPrefix: string;
+    httpOnly: boolean
 }
 
 export interface TokenableSchemeOptions extends SchemeOptions {

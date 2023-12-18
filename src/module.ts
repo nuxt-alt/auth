@@ -1,5 +1,5 @@
 import type { ModuleOptions } from './types';
-import { addImports, addPluginTemplate, addTemplate, createResolver, defineNuxtModule, installModule, addRouteMiddleware } from '@nuxt/kit';
+import { addImports, addPluginTemplate, addTemplate, createResolver, defineNuxtModule, installModule, addRouteMiddleware, addServerHandler } from '@nuxt/kit';
 import { name, version } from '../package.json';
 import { resolveStrategies } from './resolve';
 import { moduleDefaults } from './options';
@@ -93,6 +93,14 @@ export default defineNuxtModule({
 
         // Transpile
         nuxt.options.build.transpile.push(runtime, providers, utils)
+
+        if (nuxt.options.ssr) {
+            addServerHandler({
+                route: '/_auth/reset',
+                method: 'post',
+                handler: resolver.resolve(runtime, 'token-nitro'),
+            })
+        }
 
         // Middleware
         if (options.enableMiddleware) {

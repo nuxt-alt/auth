@@ -2,11 +2,12 @@ import type { ProviderOptions, ProviderPartialOptions } from '../../types';
 import type { Oauth2SchemeOptions } from '..';
 import type { Nuxt } from '@nuxt/schema';
 import { assignDefaults, addAuthorize } from '../../utils/provider';
+import { OAUTH2DEFAULTS } from '../../resolve';
 
 export interface GithubProviderOptions extends ProviderOptions, Oauth2SchemeOptions {}
 
 export function github(nuxt: Nuxt, strategy: ProviderPartialOptions<GithubProviderOptions>): void {
-    const DEFAULTS: typeof strategy = {
+    const DEFAULTS = Object.assign(OAUTH2DEFAULTS, {
         scheme: 'oauth2',
         endpoints: {
             authorization: 'https://github.com/login/oauth/authorize',
@@ -14,9 +15,9 @@ export function github(nuxt: Nuxt, strategy: ProviderPartialOptions<GithubProvid
             userInfo: 'https://api.github.com/user',
         },
         scope: ['user', 'email'],
-    };
+    })
 
-    assignDefaults(strategy, DEFAULTS);
+    assignDefaults(strategy, DEFAULTS as typeof strategy);
 
     addAuthorize(nuxt, strategy);
 }

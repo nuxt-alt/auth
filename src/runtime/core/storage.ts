@@ -13,14 +13,13 @@ export class Storage {
     #initPiniaStore!: AuthStore;
     #initStore!: Ref<AuthState>;
     state: AuthState;
-    #state: AuthState;
+    memory!: Ref<AuthState>;
     #piniaEnabled: boolean = false;
 
     constructor(ctx: NuxtApp, options: ModuleOptions) {
         this.ctx = ctx;
         this.options = options;
         this.state = options.initialState!
-        this.#state = options.initialState!
 
         this.#initState();
     }
@@ -104,7 +103,7 @@ export class Storage {
     async #initState() {
         // Use pinia for local state's if possible
         const pinia = this.ctx.$pinia as Pinia
-        this.#piniaEnabled = this.options.stores.pinia!.enabled && !!pinia;
+        this.#piniaEnabled = this.options.stores.pinia!?.enabled! && !!pinia;
 
         if (this.#piniaEnabled) {
             const { defineStore } = await import('pinia')
@@ -121,6 +120,8 @@ export class Storage {
 
             this.state = this.#initStore.value
         }
+
+        this.memory = useState<AuthState>('auth-internal', () => ({}))
     }
 
     get pinia() {
@@ -133,7 +134,7 @@ export class Storage {
 
     setState(key: string, value: any) {
         if (key.startsWith('_')) {
-            this.#state[key] = value;
+            this.memory.value[key] = value;
         }
         else if (this.#piniaEnabled) {
             this.#initPiniaStore.$patch({ [key]: value });
@@ -149,7 +150,7 @@ export class Storage {
         if (!key.startsWith('_')) {
             return this.state[key];
         } else {
-            return this.#state[key];
+            return this.memory.value[key];
         }
     }
 

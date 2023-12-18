@@ -67,7 +67,7 @@ export class Auth {
         return redirects;
     }
 
-    checkTokenValidation() {
+    #checkTokenValidation() {
         this.#tokenValidationInterval = setInterval(async () => {
             // Perform scheme checks.
             const { valid, tokenExpired, refreshTokenExpired, isRefreshable } = this.check(true);
@@ -195,12 +195,12 @@ export class Auth {
                     }
 
                     if (enableTokenValidation && loggedIn) {
-                        this.checkTokenValidation()
+                        this.#checkTokenValidation()
                     }
                 })
 
                 if (enableTokenValidation && this.loggedIn) {
-                    this.checkTokenValidation()
+                    this.#checkTokenValidation()
                 }
             }
         }
@@ -311,9 +311,7 @@ export class Auth {
             this.refreshStrategy.refreshToken.reset();
         }
 
-        return this.strategy.reset!(
-            ...(args as [options?: { resetInterceptor: boolean }])
-        );
+        return this.strategy.reset!(...(args as [options?: { resetInterceptor: boolean }]));
     }
 
     async refreshTokens(): Promise<HTTPResponse<any> | void> {
@@ -372,13 +370,24 @@ export class Auth {
             return Promise.reject(new Error('[AUTH] add the @nuxt-alt/http module to nuxt.config file'));
         }
 
-        return this.ctx.$http.raw(request).catch((error: Error) => {
-            // Call all error handlers
-            this.callOnError(error, { method: 'request' });
+        if (process.server && this.ctx.ssrContext) {
+            return this.ctx.ssrContext.event.$http.raw(request).catch((error: Error) => {
+                // Call all error handlers
+                this.callOnError(error, { method: 'request' });
+    
+                // Throw error
+                return Promise.reject(error);
+            });
+        } else {
+            return this.ctx.$http.raw(request).catch((error: Error) => {
+                // Call all error handlers
+                this.callOnError(error, { method: 'request' });
+    
+                // Throw error
+                return Promise.reject(error);
+            });
+        }
 
-            // Throw error
-            return Promise.reject(error);
-        });
     }
 
     async requestWith(endpoint?: HTTPRequest, defaults?: HTTPRequest): Promise<HTTPResponse<any>> {

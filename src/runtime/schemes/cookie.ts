@@ -99,6 +99,11 @@ export class CookieScheme<OptionsT extends CookieSchemeOptions> extends LocalSch
             return;
         }
 
+        // @ts-ignore
+        if (this.options.ssr) {
+            endpoint.baseURL = ''
+        }
+
         // Make login request
         const response = await this.$auth.request(endpoint, this.options.endpoints.login);
 

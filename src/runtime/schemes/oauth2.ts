@@ -108,7 +108,7 @@ export class Oauth2Scheme<OptionsT extends Oauth2SchemeOptions = Oauth2SchemeOpt
         this.refreshController = new RefreshController(this);
 
         // Initialize Request Handler
-        this.requestHandler = new RequestHandler(this, this.$auth.ctx.$http, $auth);
+        this.requestHandler = new RequestHandler(this, process.server ? this.$auth.ctx.ssrContext!.event.$http : this.$auth.ctx.$http, $auth);
 
         // Initialize Client Window Reference
         this.#clientWindowReference = null;

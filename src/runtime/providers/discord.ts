@@ -2,11 +2,12 @@ import type { ProviderOptions, ProviderPartialOptions } from '../../types';
 import type { Oauth2SchemeOptions } from '..';
 import type { Nuxt } from '@nuxt/schema';
 import { assignDefaults, addAuthorize } from '../../utils/provider';
+import { OAUTH2DEFAULTS } from '../../resolve';
 
 export interface DiscordProviderOptions extends ProviderOptions, Oauth2SchemeOptions {}
 
 export function discord(nuxt: Nuxt, strategy: ProviderPartialOptions<DiscordProviderOptions>): void {
-    const DEFAULTS: typeof strategy = {
+    const DEFAULTS = Object.assign(OAUTH2DEFAULTS, {
         scheme: 'oauth2',
         endpoints: {
             authorization: 'https://discord.com/api/oauth2/authorize',
@@ -17,9 +18,9 @@ export function discord(nuxt: Nuxt, strategy: ProviderPartialOptions<DiscordProv
         grantType: 'authorization_code',
         codeChallengeMethod: 'S256',
         scope: ['identify', 'email'],
-    };
+    })
 
-    assignDefaults(strategy, DEFAULTS);
+    assignDefaults(strategy, DEFAULTS as typeof strategy);
 
     addAuthorize(nuxt, strategy, true);
 }

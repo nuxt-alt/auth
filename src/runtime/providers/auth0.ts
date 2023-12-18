@@ -2,13 +2,14 @@ import type { ProviderOptions, ProviderPartialOptions } from '../../types';
 import type { Oauth2SchemeOptions } from '..';
 import type { Nuxt } from '@nuxt/schema';
 import { assignDefaults } from '../../utils/provider';
+import { OAUTH2DEFAULTS } from '../../resolve';
 
 export interface Auth0ProviderOptions extends ProviderOptions, Oauth2SchemeOptions {
     domain: string;
 }
 
 export function auth0(nuxt: Nuxt, strategy: ProviderPartialOptions<Auth0ProviderOptions>): void {
-    const DEFAULTS: typeof strategy = {
+    const DEFAULTS = Object.assign(OAUTH2DEFAULTS, {
         scheme: 'auth0',
         endpoints: {
             authorization: `https://${strategy.domain}/authorize`,
@@ -17,7 +18,7 @@ export function auth0(nuxt: Nuxt, strategy: ProviderPartialOptions<Auth0Provider
             logout: `https://${strategy.domain}/v2/logout`,
         },
         scope: ['openid', 'profile', 'email'],
-    };
+    })
 
-    assignDefaults(strategy, DEFAULTS);
+    assignDefaults(strategy, DEFAULTS as typeof strategy);
 }

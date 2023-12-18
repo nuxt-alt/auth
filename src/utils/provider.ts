@@ -30,7 +30,7 @@ export function addAuthorize<SOptions extends StrategyOptions<Oauth2SchemeOption
         filename: `authorize-${strategy.name}.ts`,
         write: true,
         getContents: () => authorizeGrant({
-            endpoint,
+            baseURL: nuxt.options.http?.baseURL,
             strategy,
             useForms,
             clientSecret,
@@ -44,6 +44,31 @@ export function addAuthorize<SOptions extends StrategyOptions<Oauth2SchemeOption
         route: endpoint,
         method: 'post',
         handler: join(nuxt.options.buildDir, `authorize-${strategy.name}.ts`),
+    })
+}
+
+export function addLocalAuthorize<SOptions extends StrategyOptions<RefreshSchemeOptions>>(nuxt: Nuxt, strategy: SOptions): void {
+    const tokenEndpoint = strategy.endpoints?.login?.url;
+    const refreshEndpoint = strategy.endpoints?.refresh?.url;
+    // Endpoint
+    const endpoint = `/_auth/local/${strategy.name}/authorize`;
+    strategy.endpoints!.login!.url = endpoint;
+    strategy.endpoints!.refresh!.url = endpoint;
+
+    addTemplate({
+        filename: `local-${strategy.name}.ts`,
+        write: true,
+        getContents: () => localAuthorizeGrant({
+            strategy,
+            tokenEndpoint,
+            refreshEndpoint
+        }),
+    })
+
+    addServerHandler({
+        route: endpoint,
+        method: 'post',
+        handler: join(nuxt.options.buildDir, `local-${strategy.name}.ts`),
     })
 }
 
@@ -65,7 +90,6 @@ export function initializePasswordGrantFlow<SOptions extends StrategyOptions<Ref
         filename: `password-${strategy.name}.ts`,
         write: true,
         getContents: () => passwordGrant({
-            endpoint,
             strategy,
             clientSecret,
             clientId,
@@ -106,10 +130,18 @@ export function assignAbsoluteEndpoints<SOptions extends StrategyOptions<(Tokena
 
 export function authorizeGrant(opt: any): string {
 return `import { defineEventHandler, readBody, createError, getCookie } from 'h3'
-import { createInstance } from '@refactorjs/ofetch'
 import { config } from '#nuxt-auth-options'
+import { serialize } from 'cookie-es'
 
-const options = ${JSON.stringify(opt)}
+const options = ${JSON.stringify(opt, null, 4)}
+
+function addTokenPrefix(token: string | boolean, tokenType: string | false): string | boolean {
+    if (!token || !tokenType || typeof token !== 'string' || token.startsWith(tokenType)) {
+        return token;
+    }
+
+    return tokenType + ' ' + token;
+}
 
 export default defineEventHandler(async (event) => {
     const {
@@ -121,8 +153,9 @@ export default defineEventHandler(async (event) => {
         refresh_token: refreshToken
     } = await readBody(event)
 
-    const cookieName = config.stores.cookie.prefix + (options.strategy?.refreshToken?.prefix || '_refresh_token.') + options.strategy.name
-    const serverRefreshToken = getCookie(event, cookieName)
+    const refreshCookieName = config.stores.cookie.prefix + options.strategy?.refreshToken?.prefix + options.strategy.name
+    const tokenCookieName = config.stores.cookie.prefix + options.strategy?.token?.prefix + options.strategy.name
+    const serverRefreshToken = getCookie(event, refreshCookieName)
 
     // Grant type is authorization code, but code is not available
     if (grantType === 'authorization_code' && !code) {
@@ -173,40 +206,128 @@ export default defineEventHandler(async (event) => {
         headers['Content-Type'] = 'application/x-www-form-urlencoded'
     }
 
-    const $fetch = createInstance()
-
-    await $fetch.post(options.tokenEndpoint, {
-        body: body,
+    const response = await event.$http.post(options.tokenEndpoint, {
+        body,
         headers
     })
-    .then((response) => {
-        if (config.stores.cookie.enabled) {
-            const cookieValue = response._data[options.strategy?.refreshToken?.property || 'refresh_token']
 
-            // Create the cookie options string
-            // setCookie() doesnt work here for some reason
-            let cookieOptions = Object.keys({ ...config.stores.cookie.options, httpOnly: true }).reduce((accumulated, currentOptionKey) => {
-                if (currentOptionKey === 'maxAge') {
-                    return \`\${accumulated}; Max-Age=\${config.stores.cookie.options[currentOptionKey]}\`;
-                }
-                if (config.stores.cookie.options[currentOptionKey] === true) {
-                    return \`\${accumulated}; \${currentOptionKey.charAt(0).toUpperCase() + currentOptionKey.slice(1)}\`;
-                }
-                return \`\${accumulated}; \${currentOptionKey.charAt(0).toUpperCase() + currentOptionKey.slice(1)}=\${config.stores.cookie.options[currentOptionKey]}\`;
-            }, '');
-            
-            const cookieString = \`\${cookieName}=\${cookieValue}\${cookieOptions}\`;
+    let cookies = event.node.res.getHeader('Set-Cookie') || [];
 
-            event.node.res.setHeader('Set-Cookie', cookieString)
-        }
+    const refreshCookieValue = response._data?.[options.strategy?.refreshToken?.property]
+    if (config.stores.cookie.enabled && refreshCookieValue && options.strategy.refreshToken.httpOnly) {
+        const refreshCookie = serialize(refreshCookieName, refreshCookieValue, { ...config.stores.cookie.options, httpOnly: true })
+        cookies.push(refreshCookie);
+    }
 
-        return event.node.res.end(JSON.stringify(response._data))
+    const tokenCookieValue = response._data?.[options.strategy?.token?.property]
+    if (config.stores.cookie.enabled && tokenCookieValue && options.strategy.token.httpOnly) {
+        const token = addTokenPrefix(tokenCookieValue, options.strategy.token.type)
+        const tokenCookie = serialize(tokenCookieName, token, { ...config.stores.cookie.options, httpOnly: true })
+        cookies.push(tokenCookie);
+    }
+
+    if (cookies.length) {
+        event.node.res.setHeader('Set-Cookie', cookies);
+    }
+
+    event.node.res.end(JSON.stringify(response._data))
+})
+`;
+}
+
+export function localAuthorizeGrant(opt: any): string {
+return `import { defineEventHandler, readBody, createError, getCookie } from 'h3'
+import { isIPv6, type AddressInfo } from 'node:net'
+import { config } from '#nuxt-auth-options'
+import { serialize } from 'cookie-es'
+import http from 'node:http'
+
+const options = ${JSON.stringify(opt, null, 4)}
+
+function checkProtocol(url) {
+    const regex = /^(http|https):\\/\\//;
+    if(regex.test(url)) {
+        return true
+    } else {
+        return false
+    }
+}
+
+function addTokenPrefix(token: string | boolean, tokenType: string | false): string | boolean {
+    if (!token || !tokenType || typeof token !== 'string' || token.startsWith(tokenType)) {
+        return token;
+    }
+
+    return tokenType + ' ' + token;
+}
+
+export default defineEventHandler(async (event) => {
+    const requestBody = await readBody(event)
+
+    const refreshCookieName = config.stores.cookie.prefix + options.strategy?.refreshToken?.prefix + options.strategy.name
+    const tokenCookieName = config.stores.cookie.prefix + options.strategy?.token?.prefix + options.strategy.name
+    const serverRefreshToken = getCookie(event, refreshCookieName)
+
+    // Grant type is refresh token, but refresh token is not available
+    if ((requestBody.grant_type === 'refresh_token' && !options.strategy.refreshToken.httpOnly && !requestBody.refresh_token) || (requestBody.grant_type === 'refresh_token' && options.strategy.refreshToken.httpOnly && !serverRefreshToken)) {
+        return createError({
+            statusCode: 500,
+            message: 'Missing refresh token'
+        })
+    }
+
+    let body = {
+        ...requestBody,
+        refresh_token: options.strategy.refreshToken.httpOnly ? serverRefreshToken : requestBody.refresh_token,
+    }
+
+    if (requestBody.grant_type !== 'refresh_token') {
+        delete body.refresh_token
+    }
+
+    const authorizationURL = body.refresh_token ? options.refreshEndpoint : options.tokenEndpoint
+    // @ts-ignore
+    const server = event.node.res.socket?.server as http.Server
+    const addressInfo = server?.address() as AddressInfo
+    const host = addressInfo.address;
+    const port = addressInfo.port;
+    let serverURL;
+
+    if (isIPv6(host)) {
+        serverURL = 'http://[' + host + ']:' + port;
+    } else {
+        serverURL = 'http://' + host + ':' + port;
+    }
+
+    if (!host) {
+        serverURL = options.baseURL
+    }
+
+    const response = await event.$http.post(authorizationURL, {
+        baseURL: checkProtocol(authorizationURL) ? '' : serverURL,
+        body: new URLSearchParams(body)
     })
-    .catch((error) => {
-        const data = error.response?._data || error.response?.data
-        event.node.res.statusCode = error.response?.status
-        return event.node.res.end(JSON.stringify(data))
-    })
+
+    let cookies = event.node.res.getHeader('Set-Cookie') || [];
+
+    const refreshCookieValue = response._data?.[options.strategy?.refreshToken?.property]
+    if (config.stores.cookie.enabled && refreshCookieValue && options.strategy.refreshToken.httpOnly) {
+        const refreshCookie = serialize(refreshCookieName, refreshCookieValue, { ...config.stores.cookie.options, httpOnly: true })
+        cookies.push(refreshCookie);
+    }
+
+    const tokenCookieValue = response._data?.[options.strategy?.token?.property]
+    if (config.stores.cookie.enabled && tokenCookieValue && options.strategy.token.httpOnly) {
+        const token = addTokenPrefix(tokenCookieValue, options.strategy.token.type)
+        const tokenCookie = serialize(tokenCookieName, token, { ...config.stores.cookie.options, httpOnly: true })
+        cookies.push(tokenCookie);
+    }
+
+    if (cookies.length) {
+        event.node.res.setHeader('Set-Cookie', cookies);
+    }
+
+    event.node.res.end(JSON.stringify(response._data))
 })
 `;
 }
@@ -214,9 +335,8 @@ export default defineEventHandler(async (event) => {
 export function passwordGrant(opt: any): string {
 return `import requrl from 'requrl';
 import { defineEventHandler, readBody, createError } from 'h3';
-import { createInstance } from '@refactorjs/ofetch';
 
-const options = ${JSON.stringify(opt)}
+const options = ${JSON.stringify(opt, null, 4)}
 
 export default defineEventHandler(async (event) => {
     const body = await readBody(event)
@@ -248,9 +368,7 @@ export default defineEventHandler(async (event) => {
         })
     }
 
-    const $fetch = createInstance()
-
-    await $fetch.post(options.tokenEndpoint, {
+    const response = await event.$http.post(options.tokenEndpoint, {
         baseURL: requrl(event.node.req),
         body: {
             client_id: options.clientId,
@@ -261,12 +379,8 @@ export default defineEventHandler(async (event) => {
             Accept: 'application/json'
         }
     })
-    .then((response) => event.node.res.end(JSON.stringify(response._data)))
-    .catch((error) => {
-        const data = error.response?._data || error.response?.data
-        event.node.res.statusCode = error.response?.status
-        event.node.res.end(JSON.stringify(data))
-    })
+
+    event.node.res.end(JSON.stringify(response._data))
 })
 `;
 }
