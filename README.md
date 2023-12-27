@@ -16,10 +16,10 @@ This module is meant as an alternative to @nuxtjs/auth, except this is for nuxt3
 
 ## Setup
 
-1. Add `@nuxt-alt/auth` `@pinia/nuxt` `pinia` and `@nuxt-alt/http` dependency to your project
+1. Add `@nuxt-alt/auth` and `@nuxt-alt/http` dependency to your project
 
 ```bash
-yarn add @nuxt-alt/auth @nuxt-alt/http @pinia/nuxt pinia
+yarn add @nuxt-alt/auth @nuxt-alt/http
 ```
 
 2. Add `@nuxt-alt/auth` and `@pinia/nuxt` to the `modules` section of `nuxt.config.ts`
@@ -41,7 +41,7 @@ export default defineNuxtConfig({
 ```
 
 ## Documentation
-I do not have the resources to host a dedicated documentation page, however I have been making updates to a [Stackblitz](https://stackblitz.com/edit/github-nufjhw-1bec1b) container so you may check there
+[Read Documentation](https://nuxt-alt-auth.vercel.app)
 
 ## Changes 
 
