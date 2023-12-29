@@ -105,6 +105,7 @@ export class RequestHandler {
                     this.scheme.reset?.()
                     throw new ExpiredAuthSessionError();
                 }
+                throw error;
             }
         );
     }
