@@ -93,11 +93,10 @@ export default defineNuxtPlugin({
 
 export function converter(key: string, val: any) {
     if (val && typeof val === 'function') {
-        val = String(val)
+        val = String(val).trim()
 
-        if (val.includes(key)) {
+        if (val.includes(key) && !val.includes('function')) {
             val = val.replace(key, '');
-            val = val.replace('function', '')
             val = val.replace('{', '=> {');
         }
 
