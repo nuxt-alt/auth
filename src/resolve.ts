@@ -90,7 +90,7 @@ export const LOCALDEFAULTS = {
         },
         refresh: {
             url: '/api/auth/refresh',
-            method: 'POST',
+            method: 'post',
         },
     },
     token: {

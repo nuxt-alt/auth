@@ -1,9 +1,8 @@
-import type { JwtPayload } from 'jwt-decode';
 import type { TokenableScheme } from '../../types';
 import type { Storage } from '../core';
 import { addTokenPrefix } from '../../utils';
 import { TokenStatus } from './token-status';
-import { jwtDecode } from 'jwt-decode';
+import { type JwtPayload, jwtDecode } from 'jwt-decode';
 
 export class Token {
     scheme: TokenableScheme;
