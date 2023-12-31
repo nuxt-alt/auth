@@ -3,6 +3,12 @@ import type { PartialExcept } from './utils';
 
 export type ProviderNames<N = ''> = 'laravel/sanctum' | 'laravel/jwt' | 'laravel/passport' | 'google' | 'github' | 'facebook' | 'discord' | 'auth0' | N | ((...args: any[]) => any)
 
+export interface ImportOptions {
+    name: string;
+    as: string;
+    from: string;
+}
+
 export interface ProviderOptions {
     scheme: string;
     clientSecret: string | number;

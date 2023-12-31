@@ -2,7 +2,7 @@ import type { ProviderOptions, ProviderPartialOptions } from '../../types';
 import type { Oauth2SchemeOptions } from '..';
 import type { Nuxt } from '@nuxt/schema';
 import { assignDefaults } from '../../utils/provider';
-import { OAUTH2DEFAULTS } from '../../resolve';
+import { OAUTH2DEFAULTS } from '../inc';
 
 export interface Auth0ProviderOptions extends ProviderOptions, Oauth2SchemeOptions {
     domain: string;

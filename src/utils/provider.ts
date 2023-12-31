@@ -211,7 +211,7 @@ export default defineEventHandler(async (event) => {
         headers
     })
 
-    let cookies = event.node.res.getHeader('Set-Cookie') || [];
+    let cookies = event.node.res.getHeader('Set-Cookie') as string[] || [];
 
     const refreshCookieValue = response._data?.[options.strategy?.refreshToken?.property]
     if (config.stores.cookie.enabled && refreshCookieValue && options.strategy.refreshToken.httpOnly) {
@@ -221,7 +221,7 @@ export default defineEventHandler(async (event) => {
 
     const tokenCookieValue = response._data?.[options.strategy?.token?.property]
     if (config.stores.cookie.enabled && tokenCookieValue && options.strategy.token.httpOnly) {
-        const token = addTokenPrefix(tokenCookieValue, options.strategy.token.type)
+        const token = addTokenPrefix(tokenCookieValue, options.strategy.token.type) as string
         const tokenCookie = serialize(tokenCookieName, token, { ...config.stores.cookie.options, httpOnly: true })
         cookies.push(tokenCookie);
     }
@@ -308,7 +308,7 @@ export default defineEventHandler(async (event) => {
         body: new URLSearchParams(body)
     })
 
-    let cookies = event.node.res.getHeader('Set-Cookie') || [];
+    let cookies = event.node.res.getHeader('Set-Cookie') as string[] || [];
 
     const refreshCookieValue = response._data?.[options.strategy?.refreshToken?.property]
     if (config.stores.cookie.enabled && refreshCookieValue && options.strategy.refreshToken.httpOnly) {
@@ -318,7 +318,7 @@ export default defineEventHandler(async (event) => {
 
     const tokenCookieValue = response._data?.[options.strategy?.token?.property]
     if (config.stores.cookie.enabled && tokenCookieValue && options.strategy.token.httpOnly) {
-        const token = addTokenPrefix(tokenCookieValue, options.strategy.token.type)
+        const token = addTokenPrefix(tokenCookieValue, options.strategy.token.type) as string
         const tokenCookie = serialize(tokenCookieName, token, { ...config.stores.cookie.options, httpOnly: true })
         cookies.push(tokenCookie);
     }

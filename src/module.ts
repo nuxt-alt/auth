@@ -1,9 +1,9 @@
 import type { ModuleOptions } from './types';
-import { addImports, addPluginTemplate, addTemplate, createResolver, defineNuxtModule, installModule, addRouteMiddleware, addServerHandler } from '@nuxt/kit';
+import { addImports, addPluginTemplate, createResolver, defineNuxtModule, installModule, addRouteMiddleware, addServerHandler } from '@nuxt/kit';
 import { name, version } from '../package.json';
 import { resolveStrategies } from './resolve';
 import { moduleDefaults } from './options';
-import { getAuthDTS, getAuthPlugin, converter } from './plugin';
+import { getAuthPlugin, converter } from './plugin';
 import { defu } from 'defu';
 
 const CONFIG_KEY = 'auth';
@@ -66,15 +66,8 @@ export default defineNuxtModule({
         // Add auth plugin
         addPluginTemplate({
             getContents: () => getAuthPlugin({ options, strategies, strategyScheme, schemeImports }),
-            filename: 'auth.plugin.mjs',
-            write: true
+            filename: 'auth.plugin.mjs'
         });
-
-        addTemplate({
-            getContents: () => getAuthDTS(),
-            filename: 'auth.plugin.d.ts',
-            write: true
-        })
 
         // Add auto imports
         addImports([

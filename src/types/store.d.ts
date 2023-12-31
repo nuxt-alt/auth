@@ -1,8 +1,7 @@
-import type { Ref } from 'vue';
 import type { _StoreWithState } from 'pinia';
 import type { CookieSerializeOptions } from 'cookie-es';
 
-export interface AuthStore extends _StoreWithState<string, AuthState, {}, {}> {
+export type AuthStore = _StoreWithState<string, AuthState, {}, {}> & {
     [key: string]: AuthState
 }
 

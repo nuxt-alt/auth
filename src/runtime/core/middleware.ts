@@ -1,5 +1,5 @@
 import { routeMeta, getMatchedComponents, hasOwn, normalizePath } from '../../utils';
-import { useAuth, defineNuxtRouteMiddleware } from '#imports';
+import { useAuth, useNuxtApp, defineNuxtRouteMiddleware } from '#imports';
 
 export default defineNuxtRouteMiddleware(async (to, from) => {
     // Disable middleware if options: { auth: false } is set on the route
@@ -16,12 +16,13 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
     }
 
     const auth = useAuth();
+    const ctx = useNuxtApp()
 
     const { login, callback } = auth.options.redirect;
 
     const pageIsInGuestMode = hasOwn(to.meta, 'auth') && routeMeta(to, 'auth', 'guest');
 
-    const insidePage = (page: string) => normalizePath(to.path) === normalizePath(page);
+    const insidePage = (page: string) => normalizePath(to.path, ctx) === normalizePath(page, ctx);
 
     if (auth.$state.loggedIn) {
         // Perform scheme checks.
