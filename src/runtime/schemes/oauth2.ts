@@ -6,7 +6,6 @@ import { getProp, normalizePath, randomString, removeTokenPrefix, parseQuery } f
 import { RefreshController, RequestHandler, ExpiredAuthSessionError, Token, RefreshToken } from '../inc';
 import { joinURL, withQuery } from 'ufo';
 import { BaseScheme } from './base';
-import { useRuntimeConfig } from '#imports';
 import requrl from 'requrl';
 
 export interface Oauth2SchemeEndpoints extends EndpointsOption {
@@ -119,8 +118,8 @@ export class Oauth2Scheme<OptionsT extends Oauth2SchemeOptions = Oauth2SchemeOpt
     }
 
     protected get redirectURI(): string {
-        const basePath = useRuntimeConfig().app.baseURL || '';
-        const path = normalizePath(basePath + '/' + this.$auth.options.redirect.callback); // Don't pass in context since we want the base path
+        const basePath = this.$auth.ctx.$config.app.baseURL || '';
+        const path = normalizePath(basePath + '/' + this.$auth.options.redirect.callback, this.$auth.ctx); // Don't pass in context since we want the base path
         return this.options.redirectUri || joinURL(process.server ? requrl(this.req) : globalThis.location.origin, path);
     }
 
@@ -356,7 +355,7 @@ export class Oauth2Scheme<OptionsT extends Oauth2SchemeOptions = Oauth2SchemeOpt
         const route = (this.$auth.ctx.$router as Router).currentRoute.value
 
         // Handle callback only for specified route
-        if (this.$auth.options.redirect && normalizePath(route.path) !== normalizePath(this.$auth.options.redirect.callback as string)) {
+        if (this.$auth.options.redirect && normalizePath(route.path, this.$auth.ctx) !== normalizePath(this.$auth.options.redirect.callback as string, this.$auth.ctx)) {
             return;
         }
 

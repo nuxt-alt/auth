@@ -4,7 +4,7 @@ import { LocalScheme, type LocalSchemeEndpoints, type LocalSchemeOptions } from 
 import { getProp } from '../../utils';
 
 export interface CookieSchemeEndpoints extends LocalSchemeEndpoints {
-    csrf: HTTPRequest | false;
+    csrf?: HTTPRequest | false;
 }
 
 export interface CookieSchemeCookie {

@@ -7,8 +7,8 @@ export class RequestHandler {
     scheme: TokenableScheme | RefreshableScheme;
     auth: Auth;
     http: FetchInstance;
-    requestInterceptor: number | undefined | null;
-    responseInterceptor: number | undefined | null;
+    requestInterceptor: number | null;
+    responseErrorInterceptor: number | null;
     currentToken: string
 
     constructor(scheme: TokenableScheme | RefreshableScheme, http: FetchInstance, auth: Auth) {
@@ -16,7 +16,7 @@ export class RequestHandler {
         this.http = http;
         this.auth = auth;
         this.requestInterceptor = null;
-        this.responseInterceptor = null;
+        this.responseErrorInterceptor = null;
         this.currentToken = this.auth.$storage.memory.value?.[this.scheme.options.token!.prefix + this.scheme.options.name] as string
     }
 
@@ -34,10 +34,9 @@ export class RequestHandler {
     }
 
     initializeRequestInterceptor(refreshEndpoint?: string | Request): void {
-        this.requestInterceptor = this.http.interceptors.request.use(
+        this.requestInterceptor = this.http.onRequest(
             async (config: FetchConfig) => {
                 // Set the token on the client side
-                
                 if (this.scheme.options.token && this.scheme.options.token.httpOnly && this.currentToken) {
                     this.setHeader(this.currentToken)
                 }
@@ -95,26 +94,24 @@ export class RequestHandler {
                 return this.#getUpdatedRequestConfig(config, token ? token.get() : false);
             }
         );
-        this.responseInterceptor = this.http.interceptors.response.use(
-            res => res,
-            error => {
-                if (typeof this.auth.options.resetOnResponseError === 'function') {
-                    this.auth.options.resetOnResponseError(error, this.auth, this.scheme)
-                }
-                else if (this.auth.options.resetOnResponseError && error?.response?.status === 401) {
-                    this.scheme.reset?.()
-                    throw new ExpiredAuthSessionError();
-                }
+
+        this.responseErrorInterceptor = this.http.onResponseError(error => {
+            if (typeof this.auth.options.resetOnResponseError === 'function') {
+                this.auth.options.resetOnResponseError(error, this.auth, this.scheme)
             }
-        );
+            else if (this.auth.options.resetOnResponseError && error?.response?.status === 401) {
+                this.scheme.reset?.()
+                throw new ExpiredAuthSessionError();
+            }
+        })
     }
 
     reset(): void {
         // Eject request interceptor
-        this.http.interceptors.request.eject(this.requestInterceptor as number);
-        this.http.interceptors.response.eject(this.responseInterceptor as number);
+        this.http.interceptors.request.eject(this.requestInterceptor!);
+        this.http.interceptors.response.eject(this.responseErrorInterceptor!);
         this.requestInterceptor = null;
-        this.responseInterceptor = null;
+        this.responseErrorInterceptor = null;
     }
 
     #needToken(config: FetchConfig): boolean {

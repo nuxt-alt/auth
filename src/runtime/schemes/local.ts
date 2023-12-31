@@ -13,9 +13,9 @@ export interface LocalSchemeEndpoints extends EndpointsOption {
 export interface LocalSchemeOptions extends TokenableSchemeOptions {
     endpoints: LocalSchemeEndpoints;
     user: UserOptions;
-    clientId: string | false;
-    grantType: string | false;
-    scope: string[] | false;
+    clientId: string;
+    grantType: 'implicit' | 'authorization_code' | 'client_credentials' | 'password' | 'refresh_token' | 'urn:ietf:params:oauth:grant-type:device_code';
+    scope: string | string[];
 }
 
 const DEFAULTS: SchemePartialOptions<LocalSchemeOptions> = {
@@ -49,9 +49,9 @@ const DEFAULTS: SchemePartialOptions<LocalSchemeOptions> = {
         property: 'user',
         autoFetch: true,
     },
-    clientId: false,
-    grantType: false,
-    scope: false,
+    clientId: undefined,
+    grantType: undefined,
+    scope: undefined,
 };
 
 export class LocalScheme<OptionsT extends LocalSchemeOptions = LocalSchemeOptions> extends BaseScheme<OptionsT> implements TokenableScheme<OptionsT>

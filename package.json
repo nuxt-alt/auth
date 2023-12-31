@@ -1,6 +1,6 @@
 {
     "name": "@nuxt-alt/auth",
-    "version": "3.1.0",
+    "version": "3.1.1",
     "description": "An alternative module to @nuxtjs/auth",
     "homepage": "https://github.com/nuxt-alt/auth",
     "author": "Denoder",
@@ -47,14 +47,14 @@
         "requrl": "^3.0.2"
     },
     "devDependencies": {
-        "@nuxt-alt/proxy": "^2.4.2",
+        "@nuxt-alt/proxy": "^2.4.8",
         "@nuxt/schema": "^3.8.2",
         "@nuxt/ui": "^2.10.0",
         "@nuxtjs/i18n": "next",
         "@types/node": "^20",
         "jiti": "^1.21.0",
-        "nuxt": "^3.8.2",
-        "typescript": "^5.3.2",
+        "nuxt": "^3.9.0",
+        "typescript": "^5.3.3",
         "unbuild": "^2.0.0"
     },
     "repository": {

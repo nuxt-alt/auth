@@ -2,7 +2,7 @@ import type { RefreshTokenOptions, TokenOptions, UserOptions, RecursivePartial, 
 import type { Oauth2SchemeOptions, RefreshSchemeOptions } from '..';
 import type { Nuxt } from '@nuxt/schema';
 import { assignDefaults, addAuthorize, initializePasswordGrantFlow, assignAbsoluteEndpoints } from '../../utils/provider';
-import { LOCALDEFAULTS } from '../../resolve';
+import { LOCALDEFAULTS } from '../inc';
 
 export interface LaravelPassportProviderOptions extends ProviderOptions, Oauth2SchemeOptions {
     url: string;

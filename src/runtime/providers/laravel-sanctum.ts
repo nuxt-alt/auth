@@ -2,7 +2,7 @@ import type { ProviderPartialOptions, HTTPRequest, ProviderOptions } from '../..
 import type { CookieSchemeOptions } from '..';
 import type { Nuxt } from '@nuxt/schema';
 import { assignAbsoluteEndpoints, assignDefaults, addLocalAuthorize } from '../../utils/provider';
-import { LOCALDEFAULTS } from '../../resolve';
+import { LOCALDEFAULTS } from '../inc';
 
 export interface LaravelSanctumProviderOptions extends ProviderOptions, CookieSchemeOptions {}
 

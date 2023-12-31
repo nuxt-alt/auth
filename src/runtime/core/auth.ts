@@ -19,13 +19,13 @@ export class Auth {
     error?: Error;
     #errorListeners?: ErrorListener[] = [];
     #redirectListeners?: RedirectListener[] = [];
-    #tokenValidationInterval?: NodeJS.Timeout
+    #tokenValidationInterval?: NodeJS.Timeout;
 
     constructor(ctx: NuxtApp, options: ModuleOptions) {
         this.ctx = ctx;
 
         if (typeof this.ctx.$localePath === 'function') {
-            // @ts-expect-error - package may or may not be installed
+            // @ts-ignore - package may or may not be installed
             this.ctx.hook('i18n:localeSwitched', () => {
                 this.#transformRedirect(this.options.redirect);
             })
@@ -370,23 +370,15 @@ export class Auth {
             return Promise.reject(new Error('[AUTH] add the @nuxt-alt/http module to nuxt.config file'));
         }
 
-        if (process.server && this.ctx.ssrContext) {
-            return this.ctx.ssrContext.event.$http.raw(request).catch((error: Error) => {
-                // Call all error handlers
-                this.callOnError(error, { method: 'request' });
-    
-                // Throw error
-                return Promise.reject(error);
-            });
-        } else {
-            return this.ctx.$http.raw(request).catch((error: Error) => {
-                // Call all error handlers
-                this.callOnError(error, { method: 'request' });
-    
-                // Throw error
-                return Promise.reject(error);
-            });
-        }
+        const $http = process.server && this.ctx.ssrContext ? this.ctx.ssrContext.event.$http.raw(request) : this.ctx.$http.raw(request)
+
+        return $http.catch((error: Error) => {
+            // Call all error handlers
+            this.callOnError(error, { method: 'request' });
+
+            // Throw error
+            return Promise.reject(error);
+        })
 
     }
 

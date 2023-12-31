@@ -1,7 +1,7 @@
 import type { RouteComponent, RouteLocationNormalized } from 'vue-router';
 import type { RecursivePartial } from '../types';
+import type { NuxtApp } from '#app';
 import type { H3Event } from 'h3';
-import { useRuntimeConfig } from '#imports';
 
 export const isUnset = (o: any): boolean => typeof o === 'undefined' || o === null;
 
@@ -36,14 +36,13 @@ export function getMatchedComponents(route: RouteLocationNormalized, matches: un
     ]
 }
 
-export function normalizePath(path: string = ''): string {
+export function normalizePath(path: string = '', ctx: NuxtApp): string {
     // Remove query string
-    const config = useRuntimeConfig()
     let result = path.split('?')[0];
 
     // Remove base path
-    if (config.app.baseURL) {
-        result = result.replace(config.app.baseURL, '/');
+    if (ctx.$config.app.baseURL) {
+        result = result.replace(ctx.$config.app.baseURL, '/');
     }
 
     // Remove redundant / from the end of path

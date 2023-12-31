@@ -4,6 +4,7 @@ import type { ProviderPartialOptions, ProviderOptions, ProviderNames } from './p
 
 export type Strategy<S = {}> = S & Strategies;
 
+// @ts-ignore: endpoints dont match
 export interface AuthSchemeOptions extends RefreshableSchemeOptions, Oauth2SchemeOptions, CookieSchemeOptions, OpenIDConnectSchemeOptions {}
 
 export interface Strategies extends SchemePartialOptions<AuthSchemeOptions> {

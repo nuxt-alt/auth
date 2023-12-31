@@ -11,7 +11,7 @@ export interface UserOptions {
 }
 
 export interface EndpointsOption {
-    [endpoint: string]: string | HTTPRequest | false;
+    [endpoint: string]: string | HTTPRequest | false | undefined;
 }
 
 // Scheme

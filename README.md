@@ -30,8 +30,7 @@ it will use nuxt's `useState` by default.
 ```ts
 export default defineNuxtConfig({
     modules: [
-        '@nuxt-alt/auth',
-        '@pinia/nuxt'
+        '@nuxt-alt/auth'
     ],
     auth: {
         /* module options */

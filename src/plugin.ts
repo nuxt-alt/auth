@@ -1,17 +1,4 @@
-import type { ImportOptions } from './resolve';
-import type { ModuleOptions, Strategy } from './types';
-
-export const getAuthDTS = () => {
-return `import type { Plugin } from '#app'
-import { Auth } from '#auth/runtime'
-
-declare const _default: Plugin<{
-    auth: Auth;
-}>;
-
-export default _default;
-`
-}
+import type { ModuleOptions, Strategy, ImportOptions } from './types';
 
 export const getAuthPlugin = (options: {
     options: ModuleOptions
@@ -92,9 +79,19 @@ export default defineNuxtPlugin({
 }
 
 export function converter(key: string, val: any) {
-    if (val && val.constructor === RegExp || typeof val === 'function') {
-        return String(val)
+    if (val && typeof val === 'function') {
+        val = String(val)
+
+        if (val.includes(key) && !val.includes('function')) {
+            val = val.replace(key, '');
+            val = val.replace('{', '=> {');
+        }
+
+        return val.trim();
     }
 
+    if (val && val.constructor === RegExp) {
+        return String(val)
+    }
     return val
 }
