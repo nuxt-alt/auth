@@ -7,6 +7,12 @@ import { LOCALDEFAULTS } from '../inc';
 export interface LaravelSanctumProviderOptions extends ProviderOptions, CookieSchemeOptions {}
 
 export function laravelSanctum(nuxt: Nuxt, strategy: ProviderPartialOptions<LaravelSanctumProviderOptions>): void {
+    const { url } = strategy
+
+    if (!url) {
+        throw new Error('URL is required with Laravel Sanctum!')
+    }
+
     const endpointDefaults: Partial<HTTPRequest> = {
         credentials: 'include'
     };
@@ -49,13 +55,9 @@ export function laravelSanctum(nuxt: Nuxt, strategy: ProviderPartialOptions<Lara
     })
 
     assignDefaults(strategy, DEFAULTS as typeof strategy)
+    assignAbsoluteEndpoints(strategy)
 
-    if (strategy.url) {
-        assignAbsoluteEndpoints(strategy)
-    }
-
-    if (strategy.scheme === 'refresh') {
+    if (strategy.ssr) {
         addLocalAuthorize(nuxt, strategy);
     }
-
 }
