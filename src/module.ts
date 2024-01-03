@@ -1,9 +1,10 @@
 import type { ModuleOptions } from './types';
 import { addImports, addPluginTemplate, createResolver, defineNuxtModule, installModule, addRouteMiddleware, addServerHandler } from '@nuxt/kit';
 import { name, version } from '../package.json';
+import { serialize } from '@refactorjs/serialize';
 import { resolveStrategies } from './resolve';
 import { moduleDefaults } from './options';
-import { getAuthPlugin, converter } from './plugin';
+import { getAuthPlugin } from './plugin';
 import { defu } from 'defu';
 
 const CONFIG_KEY = 'auth';
@@ -55,7 +56,7 @@ export default defineNuxtModule({
 
         nuxt.hook('nitro:config', (config) => {
             config.virtual = config.virtual || {}
-            config.virtual['#nuxt-auth-options'] = `export const config = ${JSON.stringify(options, converter, 2)}`
+            config.virtual['#nuxt-auth-options'] = `export const config = ${serialize(options, { space: 4 })}`
         })
 
         // Install http module if not in modules

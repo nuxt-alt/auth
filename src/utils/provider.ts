@@ -2,6 +2,7 @@ import type { Oauth2SchemeOptions, RefreshSchemeOptions } from '../runtime';
 import type { StrategyOptions, HTTPRequest, TokenableSchemeOptions } from '../types';
 import type { Nuxt } from '@nuxt/schema';
 import { addServerHandler, addTemplate } from '@nuxt/kit';
+import { serialize } from '@refactorjs/serialize';
 import { join } from 'pathe';
 import { defu } from 'defu';
 
@@ -129,10 +130,11 @@ export function assignAbsoluteEndpoints<SOptions extends StrategyOptions<(Tokena
 
 export function authorizeGrant(opt: any): string {
 return `import { defineEventHandler, readBody, createError, getCookie } from 'h3'
+// @ts-expect-error: virtual file 
 import { config } from '#nuxt-auth-options'
 import { serialize } from 'cookie-es'
 
-const options = ${JSON.stringify(opt, null, 4)}
+const options = ${serialize(opt)}
 
 function addTokenPrefix(token: string | boolean, tokenType: string | false): string | boolean {
     if (!token || !tokenType || typeof token !== 'string' || token.startsWith(tokenType)) {
@@ -236,21 +238,11 @@ export default defineEventHandler(async (event) => {
 
 export function localAuthorizeGrant(opt: any): string {
 return `import { defineEventHandler, readBody, createError, getCookie } from 'h3'
-import { isIPv6, type AddressInfo } from 'node:net'
+// @ts-expect-error: virtual file
 import { config } from '#nuxt-auth-options'
 import { serialize } from 'cookie-es'
-import http from 'node:http'
 
-const options = ${JSON.stringify(opt, null, 4)}
-
-function checkProtocol(url) {
-    const regex = /^(http|https):\\/\\//;
-    if(regex.test(url)) {
-        return true
-    } else {
-        return false
-    }
-}
+const options = ${serialize(opt)}
 
 function addTokenPrefix(token: string | boolean, tokenType: string | false): string | boolean {
     if (!token || !tokenType || typeof token !== 'string' || token.startsWith(tokenType)) {
@@ -318,7 +310,7 @@ export function passwordGrant(opt: any): string {
 return `import requrl from 'requrl';
 import { defineEventHandler, readBody, createError } from 'h3';
 
-const options = ${JSON.stringify(opt, null, 4)}
+const options = ${serialize(opt)}
 
 export default defineEventHandler(async (event) => {
     const body = await readBody(event)
