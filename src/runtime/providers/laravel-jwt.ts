@@ -1,7 +1,7 @@
 import type { ProviderPartialOptions, ProviderOptions } from '../../types';
 import type { RefreshSchemeOptions } from '..';
 import type { Nuxt } from '@nuxt/schema';
-import { assignDefaults, assignAbsoluteEndpoints } from '../../utils/provider';
+import { assignDefaults, assignAbsoluteEndpoints, addLocalAuthorize } from '../../utils/provider';
 import { LOCALDEFAULTS } from '../inc';
 
 export interface LaravelJWTProviderOptions extends ProviderOptions, RefreshSchemeOptions {
@@ -53,4 +53,8 @@ export function laravelJWT(nuxt: Nuxt, strategy: ProviderPartialOptions<LaravelJ
     assignDefaults(strategy, DEFAULTS as typeof strategy);
 
     assignAbsoluteEndpoints(strategy);
+
+    if (strategy.ssr) {
+        addLocalAuthorize(nuxt, strategy);
+    }
 }
