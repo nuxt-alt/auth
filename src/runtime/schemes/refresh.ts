@@ -131,7 +131,12 @@ export class RefreshScheme<OptionsT extends RefreshSchemeOptions = RefreshScheme
             this.requestHandler.clearHeader();
         }
 
-        const endpoint: HTTPRequest = {}
+        const endpoint: HTTPRequest = {
+            body: {
+                client_id: undefined,
+                grant_type: undefined
+            }
+        }
 
         // Add refresh token to payload if required
         if (this.options.refreshToken.required && this.options.refreshToken.data && !this.options.refreshToken.httpOnly) {
