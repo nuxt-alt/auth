@@ -148,10 +148,8 @@ export class RefreshScheme<OptionsT extends RefreshSchemeOptions = RefreshScheme
             endpoint.body!.client_id = this.options.clientId;
         }
 
-        // Add grant type to payload if defined
-        if (this.options.grantType) {
-            endpoint.body!.grant_type = 'refresh_token';
-        }
+        // this is required to be set in the provider or it will delete the refresh token
+        endpoint.body!.grant_type = 'refresh_token';
 
         cleanObj(endpoint.body!);
 

@@ -258,9 +258,10 @@ export default defineEventHandler(async (event) => {
     const refreshCookieName = config.stores.cookie.prefix + options.strategy?.refreshToken?.prefix + options.strategy.name
     const tokenCookieName = config.stores.cookie.prefix + options.strategy?.token?.prefix + options.strategy.name
     const serverRefreshToken = getCookie(event, refreshCookieName)
-
+    const refreshTokenDataName = options.strategy.refreshToken.data ?? 'refresh_token'
+    
     // Grant type is refresh token, but refresh token is not available
-    if ((requestBody.grant_type === 'refresh_token' && !options.strategy.refreshToken.httpOnly && !requestBody.refresh_token) || (requestBody.grant_type === 'refresh_token' && options.strategy.refreshToken.httpOnly && !serverRefreshToken)) {
+    if ((requestBody.grant_type === 'refresh_token' && !options.strategy.refreshToken.httpOnly && !requestBody[refreshTokenDataName]) || (requestBody.grant_type === 'refresh_token' && options.strategy.refreshToken.httpOnly && !serverRefreshToken)) {
         return createError({
             statusCode: 500,
             message: 'Missing refresh token'
@@ -269,14 +270,14 @@ export default defineEventHandler(async (event) => {
 
     let body = {
         ...requestBody,
-        refresh_token: options.strategy.refreshToken.httpOnly ? serverRefreshToken : requestBody.refresh_token,
+        [refreshTokenDataName]: options.strategy.refreshToken.httpOnly ? serverRefreshToken : requestBody[refreshTokenDataName],
     }
 
     if (requestBody.grant_type !== 'refresh_token') {
-        delete body.refresh_token
+        delete body[refreshTokenDataName]
     }
 
-    const authorizationURL = body.refresh_token ? options.refreshEndpoint : options.tokenEndpoint
+    const authorizationURL = body[refreshTokenDataName] ? options.refreshEndpoint : options.tokenEndpoint
 
     const response = await event.$http.post(authorizationURL, {
         body: new URLSearchParams(body)
