@@ -28,7 +28,7 @@ export class IdToken {
         return idToken;
     }
 
-    sync(): string | boolean {
+    sync(): string | boolean | void | null | undefined {
         const idToken = this.#syncToken();
         this.#syncExpiration();
 
@@ -36,12 +36,21 @@ export class IdToken {
     }
 
     reset() {
-        this.#setToken(false);
-        this.#setExpiration(false);
+        this.scheme.requestHandler!.clearHeader();
+        this.#resetSSRToken();
+        this.#setToken(undefined);
+        this.#setExpiration(undefined);
     }
 
     status(): TokenStatus {
         return new TokenStatus(this.get(), this.#getExpiration());
+    }
+
+    #resetSSRToken(): void {
+        if (this.scheme.options.ssr && this.scheme.options.idToken?.httpOnly) {
+            const key = this.scheme.options.idToken!.prefix + this.scheme.name;
+            this.scheme.$auth.request({ baseURL: '', url: '/_auth/reset', body: new URLSearchParams({ token: key }), method: 'POST' })
+        }
     }
 
     #getExpiration(): number | false {
@@ -50,10 +59,10 @@ export class IdToken {
         return this.$storage.getUniversal(key) as number | false;
     }
 
-    #setExpiration(expiration: number | false): number | false {
+    #setExpiration(expiration: number | false | undefined | null): number | false | void | null | undefined {
         const key = this.scheme.options.idToken.expirationPrefix + this.scheme.name;
 
-        return this.$storage.setUniversal(key, expiration) as number | false;
+        return this.$storage.setUniversal(key, expiration);
     }
 
     #syncExpiration(): number | false {
@@ -63,7 +72,7 @@ export class IdToken {
         return this.$storage.syncUniversal(key) as number | false;
     }
 
-    #updateExpiration(idToken: string | boolean): number | false | void {
+    #updateExpiration(idToken: string | boolean): number | false | void | null | undefined {
         let idTokenExpiration: number;
         const tokenIssuedAtMillis = Date.now();
         const tokenTTLMillis = Number(this.scheme.options.idToken.maxAge) * 1000;
@@ -85,16 +94,16 @@ export class IdToken {
         return this.#setExpiration(idTokenExpiration || false);
     }
 
-    #setToken(idToken: string | boolean): string | boolean {
+    #setToken(idToken: string | boolean | undefined | null): string | boolean | void | null | undefined {
         const key = this.scheme.options.idToken.prefix + this.scheme.name;
 
         return this.$storage.setUniversal(key, idToken) as string | boolean;
     }
 
-    #syncToken(): string | boolean {
+    #syncToken(): string | boolean | void | null | undefined {
         const key = this.scheme.options.idToken.prefix + this.scheme.name;
 
-        return this.$storage.syncUniversal(key) as string | boolean;
+        return this.$storage.syncUniversal(key)
     }
 
     userInfo() {

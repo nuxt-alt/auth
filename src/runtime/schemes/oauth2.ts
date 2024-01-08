@@ -66,6 +66,7 @@ const DEFAULTS: SchemePartialOptions<Oauth2SchemeOptions> = {
         global: true,
         prefix: '_token.',
         expirationPrefix: '_token_expiration.',
+        httpOnly: false
     },
     refreshToken: {
         property: 'refresh_token',
@@ -404,7 +405,7 @@ export class Oauth2Scheme<OptionsT extends Oauth2SchemeOptions = Oauth2SchemeOpt
                 },
                 body: new URLSearchParams({
                     code: parsedQuery.code as string,
-                    client_id: this.options.clientId as string,
+                    client_id: this.options.clientId,
                     redirect_uri: this.redirectURI,
                     response_type: this.options.responseType,
                     audience: this.options.audience,

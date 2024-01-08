@@ -2,6 +2,7 @@ import type { TokenableScheme, RefreshableScheme } from '../../types';
 import type { Auth } from '..'
 import { ExpiredAuthSessionError } from './expired-auth-session-error';
 import { FetchInstance, type FetchConfig } from '@refactorjs/ofetch';
+import { hasOwn } from '../../utils';
 
 export class RequestHandler {
     scheme: TokenableScheme | RefreshableScheme;
@@ -36,8 +37,8 @@ export class RequestHandler {
     initializeRequestInterceptor(refreshEndpoint?: string | Request): void {
         this.requestInterceptor = this.http.onRequest(
             async (config: FetchConfig) => {
-                // Set the token on the client side
-                if (this.scheme.options.token && this.scheme.options.token.httpOnly && this.currentToken) {
+                // Set the token on the client side if not set
+                if (this.scheme.options.token && this.currentToken) {
                     this.setHeader(this.currentToken)
                 }
 

@@ -134,7 +134,7 @@ return `import { defineEventHandler, readBody, createError, getCookie } from 'h3
 import { config } from '#nuxt-auth-options'
 import { serialize } from 'cookie-es'
 
-const options = ${serialize(opt)}
+const options = ${serialize(opt, { space: 4 })}
 
 function addTokenPrefix(token: string | boolean, tokenType: string | false): string | boolean {
     if (!token || !tokenType || typeof token !== 'string' || token.startsWith(tokenType)) {
@@ -156,6 +156,7 @@ export default defineEventHandler(async (event) => {
 
     const refreshCookieName = config.stores.cookie.prefix + options.strategy?.refreshToken?.prefix + options.strategy.name
     const tokenCookieName = config.stores.cookie.prefix + options.strategy?.token?.prefix + options.strategy.name
+    const idTokenCookieName = config.stores.cookie.prefix + options.strategy?.idToken?.prefix + options.strategy.name
     const serverRefreshToken = getCookie(event, refreshCookieName)
 
     // Grant type is authorization code, but code is not available
@@ -227,6 +228,12 @@ export default defineEventHandler(async (event) => {
         cookies.push(tokenCookie);
     }
 
+    const idTokenCookieValue = response._data?.[options.strategy?.idToken?.property]
+    if (config.stores.cookie.enabled && idTokenCookieValue && options.strategy.idToken.httpOnly) {
+        const idTokenCookie = serialize(idTokenCookieName, token, { ...config.stores.cookie.options, httpOnly: true })
+        cookies.push(idTokenCookie);
+    }
+
     if (cookies.length) {
         event.node.res.setHeader('Set-Cookie', cookies);
     }
@@ -242,7 +249,7 @@ return `import { defineEventHandler, readBody, createError, getCookie } from 'h3
 import { config } from '#nuxt-auth-options'
 import { serialize } from 'cookie-es'
 
-const options = ${serialize(opt)}
+const options = ${serialize(opt, { space: 4 })}
 
 function addTokenPrefix(token: string | boolean, tokenType: string | false): string | boolean {
     if (!token || !tokenType || typeof token !== 'string' || token.startsWith(tokenType)) {
@@ -310,7 +317,7 @@ export function passwordGrant(opt: any): string {
 return `import requrl from 'requrl';
 import { defineEventHandler, readBody, createError } from 'h3';
 
-const options = ${serialize(opt)}
+const options = ${serialize(opt, { space: 4 })}
 
 export default defineEventHandler(async (event) => {
     const body = await readBody(event)

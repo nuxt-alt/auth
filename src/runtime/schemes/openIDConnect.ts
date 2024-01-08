@@ -26,6 +26,7 @@ const DEFAULTS: SchemePartialOptions<OpenIDConnectSchemeOptions> = {
         maxAge: 1800,
         prefix: '_id_token.',
         expirationPrefix: '_id_token_expiration.',
+        httpOnly: false,
     },
     fetchRemote: false,
     codeChallengeMethod: 'S256',

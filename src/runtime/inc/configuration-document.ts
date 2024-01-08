@@ -5,8 +5,7 @@ import { Storage } from '../core/storage';
 import { defu } from 'defu';
 
 // eslint-disable-next-line no-console
-const ConfigurationDocumentWarning = (message: string) =>
-    console.warn(`[AUTH] [OPENID CONNECT] Invalid configuration. ${message}`);
+const ConfigurationDocumentWarning = (message: string) => console.warn(`[AUTH] [OPENID CONNECT] Invalid configuration. ${message}`);
 
 /**
  * A metadata document that contains most of the OpenID Provider's information,
