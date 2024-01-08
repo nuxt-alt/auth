@@ -18,14 +18,6 @@ declare module '#app' {
     }
 }
 
-// For some reason `PageMeta` is only accessible here
-// Will this be fixed? Idk.
-declare module 'nuxt/dist/pages/runtime/composables' {
-    interface PageMeta {
-        auth?: 'guest' | false
-    }
-}
-
 declare module 'vue-router' {
     interface RouteMeta {
         auth?: 'guest' | false

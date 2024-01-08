@@ -2,7 +2,6 @@ import type { TokenableScheme, RefreshableScheme } from '../../types';
 import type { Auth } from '..'
 import { ExpiredAuthSessionError } from './expired-auth-session-error';
 import { FetchInstance, type FetchConfig } from '@refactorjs/ofetch';
-import { hasOwn } from '../../utils';
 
 export class RequestHandler {
     scheme: TokenableScheme | RefreshableScheme;
