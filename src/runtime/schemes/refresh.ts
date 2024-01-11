@@ -153,7 +153,6 @@ export class RefreshScheme<OptionsT extends RefreshSchemeOptions = RefreshScheme
 
         cleanObj(endpoint.body!);
 
-        // @ts-ignore
         if (this.options.ssr) {
             endpoint.baseURL = ''
         }

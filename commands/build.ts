@@ -1,7 +1,7 @@
 import type { NuxtModule } from '@nuxt/schema'
 import { existsSync, promises as fsp } from 'node:fs'
-import { pathToFileURL } from 'url'
-import { resolve } from 'path'
+import { pathToFileURL } from 'node:url'
+import { resolve } from 'node:path'
 import { defineCommand } from 'citty'
 
 export default defineCommand({
@@ -57,9 +57,9 @@ export default defineCommand({
             },
             externals: [
                 '#app',
+                '#vue-router',
                 '@refactorjs/ofetch',
                 'ofetch',
-                'vue-router',
                 '@nuxt/schema',
                 '@nuxt/schema-edge',
                 '@nuxt/kit',

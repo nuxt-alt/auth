@@ -176,7 +176,7 @@ export class OpenIDConnectScheme<OptionsT extends OpenIDConnectSchemeOptions = O
     }
 
     async #handleCallback() {
-        const route = (this.$auth.ctx.$router as Router).currentRoute.value;
+        const route = this.$auth.ctx.$router.currentRoute.value;
 
         // Handle callback only for specified route
         if (this.$auth.options.redirect && normalizePath(route.path, this.$auth.ctx) !== normalizePath(this.$auth.options.redirect.callback as string, this.$auth.ctx)) {

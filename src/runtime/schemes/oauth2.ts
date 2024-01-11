@@ -1,7 +1,6 @@
 import type { RefreshableScheme, SchemePartialOptions, SchemeCheck, RefreshableSchemeOptions, UserOptions, SchemeOptions, HTTPResponse, EndpointsOption, TokenableSchemeOptions } from '../../types';
 import type { IncomingMessage } from 'node:http';
 import type { Auth } from '../core';
-import type { Router } from 'vue-router';
 import { getProp, normalizePath, randomString, removeTokenPrefix, parseQuery } from '../../utils';
 import { RefreshController, RequestHandler, ExpiredAuthSessionError, Token, RefreshToken } from '../inc';
 import { joinURL, withQuery } from 'ufo';
@@ -353,7 +352,7 @@ export class Oauth2Scheme<OptionsT extends Oauth2SchemeOptions = Oauth2SchemeOpt
     }
 
     async #handleCallback(): Promise<boolean | void> {
-        const route = (this.$auth.ctx.$router as Router).currentRoute.value
+        const route = this.$auth.ctx.$router.currentRoute.value
 
         // Handle callback only for specified route
         if (this.$auth.options.redirect && normalizePath(route.path, this.$auth.ctx) !== normalizePath(this.$auth.options.redirect.callback as string, this.$auth.ctx)) {
