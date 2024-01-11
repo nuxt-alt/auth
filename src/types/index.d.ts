@@ -18,6 +18,12 @@ declare module '#app' {
     }
 }
 
+declare module 'vue-router' {
+    interface RouteMeta {
+        auth?: 'guest' | false
+    }
+}
+
 declare module '@nuxt/schema' {
     interface NuxtConfig {
         ['auth']?: Partial<ModuleOptions>

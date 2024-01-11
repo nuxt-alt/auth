@@ -1,7 +1,6 @@
 import type { HTTPRequest, HTTPResponse, Scheme, SchemeCheck, TokenableScheme, RefreshableScheme, ModuleOptions, Route, AuthState, } from '../../types';
 import { ExpiredAuthSessionError } from '../inc/expired-auth-session-error';
 import type { NuxtApp } from '#app';
-import type { Router } from 'vue-router';
 import { isSet, getProp, isRelativeURL, routeMeta, hasOwn } from '../../utils';
 import { Storage } from './storage';
 import { isSamePath, withQuery } from 'ufo';
@@ -190,7 +189,7 @@ export class Auth {
                 const enableTokenValidation = !this.#tokenValidationInterval && this.refreshStrategy.token && this.options.tokenValidationInterval
 
                 this.$storage.watchState('loggedIn', (loggedIn: boolean) => {
-                    if (hasOwn((this.ctx.$router as Router).currentRoute.value.meta, 'auth') && !routeMeta((this.ctx.$router as Router).currentRoute.value, 'auth', false)) {
+                    if (hasOwn(this.ctx.$router.currentRoute.value.meta, 'auth') && !routeMeta(this.ctx.$router.currentRoute.value, 'auth', false)) {
                         this.redirect(loggedIn ? 'home' : 'logout');
                     }
 
@@ -448,7 +447,7 @@ export class Auth {
             return;
         }
 
-        const currentRoute = (this.ctx.$router as Router).currentRoute.value;
+        const currentRoute = this.ctx.$router.currentRoute.value;
         const nuxtRoute = this.options.fullPathRedirect ? currentRoute.fullPath : currentRoute.path
         const from = route ? (this.options.fullPathRedirect ? route.fullPath : route.path) : nuxtRoute;
 
@@ -498,7 +497,7 @@ export class Auth {
             return globalThis.location.replace(to)
         }
         else {
-            return (this.ctx.$router as Router).push(typeof this.ctx.$localePath === 'function' ? this.ctx.$localePath(to) : to);
+            return this.ctx.$router.push(typeof this.ctx.$localePath === 'function' ? this.ctx.$localePath(to) : to);
         }
     }
 

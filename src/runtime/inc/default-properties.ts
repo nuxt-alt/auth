@@ -31,6 +31,7 @@ export const OAUTH2DEFAULTS = {
         maxAge: 1800,
         prefix: '_id_token.',
         expirationPrefix: '_id_token_expiration.',
+        httpOnly: false,
     },
     refreshToken: {
         property: 'refresh_token',
@@ -84,6 +85,7 @@ export const LOCALDEFAULTS = {
         required: true,
         prefix: '_token.',
         expirationPrefix: '_token_expiration.',
+        httpOnly: false
     },
     refreshToken: {
         property: 'refresh_token',

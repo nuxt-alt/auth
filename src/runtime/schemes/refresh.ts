@@ -149,13 +149,10 @@ export class RefreshScheme<OptionsT extends RefreshSchemeOptions = RefreshScheme
         }
 
         // Add grant type to payload if defined
-        if (this.options.grantType) {
-            endpoint.body!.grant_type = 'refresh_token';
-        }
+        endpoint.body!.grant_type = 'refresh_token';
 
         cleanObj(endpoint.body!);
 
-        // @ts-ignore
         if (this.options.ssr) {
             endpoint.baseURL = ''
         }

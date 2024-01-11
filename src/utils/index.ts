@@ -1,4 +1,4 @@
-import type { RouteComponent, RouteLocationNormalized } from 'vue-router';
+import type { RouteComponent, RouteLocationNormalized } from '#vue-router';
 import type { RecursivePartial } from '../types';
 import type { NuxtApp } from '#app';
 import type { H3Event } from 'h3';
