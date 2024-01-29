@@ -1,10 +1,10 @@
-import type { ModuleOptions, Strategy, ImportOptions } from './types';
+import type { ModuleOptions, StrategyOptions, ImportOptions } from './types';
 import { serialize } from '@refactorjs/serialize';
 
 export const getAuthPlugin = (options: {
     options: ModuleOptions
     schemeImports: ImportOptions[]
-    strategies: Strategy[]
+    strategies: StrategyOptions[]
     strategyScheme: Record<string, ImportOptions>
 }): string => {
     return `import { Auth, ExpiredAuthSessionError } from '#auth/runtime'

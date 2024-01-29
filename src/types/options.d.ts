@@ -1,4 +1,4 @@
-import type { Strategy } from './strategy';
+import type { Strategy, StrategyOptions } from './strategy';
 import type { NuxtPlugin } from '@nuxt/schema';
 import type { AuthState, RefreshableScheme, TokenableScheme } from './index';
 import type { CookieSerializeOptions } from 'cookie-es';
@@ -24,7 +24,7 @@ export interface ModuleOptions {
     /**
      * Authentication strategies used by the module.
      */
-    strategies?: Record<string, Strategy>;
+    strategies?: Record<string, StrategyOptions>;
 
     /**
      * Whether exceptions should be ignored or not.

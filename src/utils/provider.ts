@@ -50,6 +50,7 @@ export function addAuthorize<SOptions extends StrategyOptions<Oauth2SchemeOption
 export function addLocalAuthorize<SOptions extends StrategyOptions<RefreshSchemeOptions>>(nuxt: Nuxt, strategy: SOptions): void {
     const tokenEndpoint = strategy.endpoints?.login?.url;
     const refreshEndpoint = strategy.endpoints?.refresh?.url;
+
     // Endpoint
     const endpoint = `/_auth/local/${strategy.name}/authorize`;
     strategy.endpoints!.login!.url = endpoint;
@@ -203,12 +204,7 @@ export default defineEventHandler(async (event) => {
         delete body.client_secret
     }
 
-    if (options.useForms) {
-        body = new URLSearchParams(body).toString()
-        headers['Content-Type'] = 'application/x-www-form-urlencoded'
-    }
-
-    const response = await event.$http.post(options.tokenEndpoint, {
+    const response = await $http.post(options.tokenEndpoint, {
         body,
         headers
     })
@@ -284,11 +280,31 @@ export default defineEventHandler(async (event) => {
         delete body[refreshTokenDataName]
     }
 
-    const authorizationURL = body[refreshTokenDataName] ? options.refreshEndpoint : options.tokenEndpoint
+    const headers = {
+        'Content-Type': 'application/json'
+    }
 
-    const response = await event.$http.post(authorizationURL, {
-        body: new URLSearchParams(body)
-    })
+    let response
+
+    if (body[refreshTokenDataName]) {
+        response = await $http.post(options.refreshEndpoint, {
+            body,
+            headers: {
+                ...headers,
+                // @ts-ignore: headers might not be set
+                ...options.strategy?.endpoints?.refresh?.headers
+            }
+        })
+    } else {
+        response = await $http.post(options.tokenEndpoint, {
+            body,
+            headers: {
+                ...headers,
+                // @ts-ignore: headers might not be set
+                ...options.strategy?.endpoints?.login?.headers
+            }
+        })
+    }
 
     let cookies = event.node.res.getHeader('Set-Cookie') as string[] || [];
 
@@ -350,7 +366,7 @@ export default defineEventHandler(async (event) => {
         })
     }
 
-    const response = await event.$http.post(options.tokenEndpoint, {
+    const response = await $http.post(options.tokenEndpoint, {
         baseURL: requrl(event.node.req),
         body: {
             client_id: options.clientId,

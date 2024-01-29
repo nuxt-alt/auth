@@ -1,4 +1,5 @@
 import { readBody, defineEventHandler, deleteCookie } from 'h3'
+// @ts-expect-error: virtual file
 import { config } from '#nuxt-auth-options'
 
 export default defineEventHandler(async (event) => {
