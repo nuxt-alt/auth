@@ -36,14 +36,13 @@ export class IdToken {
     }
 
     reset() {
-        this.scheme.requestHandler!.clearHeader();
         this.#resetSSRToken();
         this.#setToken(undefined);
         this.#setExpiration(undefined);
     }
 
     status(): TokenStatus {
-        return new TokenStatus(this.get(), this.#getExpiration());
+        return new TokenStatus(this.get(), this.#getExpiration(), this.scheme.options.idToken?.httpOnly);
     }
 
     #resetSSRToken(): void {

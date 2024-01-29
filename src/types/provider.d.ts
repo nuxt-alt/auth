@@ -1,7 +1,9 @@
-import type { SchemeOptions } from './scheme';
+import type { SchemeOptions, SchemeNames } from './scheme';
+import type { StrategyOptions } from './strategy';
 import type { PartialExcept } from './utils';
+import type { Nuxt } from '@nuxt/schema';
 
-export type ProviderNames<N = ''> = 'laravel/sanctum' | 'laravel/jwt' | 'laravel/passport' | 'google' | 'github' | 'facebook' | 'discord' | 'auth0' | N | ((...args: any[]) => any)
+export type ProviderNames<N = ''> = 'laravel/sanctum' | 'laravel/jwt' | 'laravel/passport' | 'google' | 'github' | 'facebook' | 'discord' | 'auth0' | N | ((nuxt: Nuxt, strategy: StrategyOptions, ...args: any[]) => void);
 
 export interface ImportOptions {
     name: string;
@@ -10,7 +12,7 @@ export interface ImportOptions {
 }
 
 export interface ProviderOptions {
-    scheme: string;
+    scheme?: SchemeNames;
     clientSecret: string | number;
 }
 

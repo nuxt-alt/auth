@@ -17,7 +17,7 @@ export class RequestHandler {
         this.auth = auth;
         this.requestInterceptor = null;
         this.responseErrorInterceptor = null;
-        this.currentToken = this.auth.$storage.memory.value?.[this.scheme.options.token!.prefix + this.scheme.options.name] as string
+        this.currentToken = this.auth.$storage?.memory?.[this.scheme.options.token!?.prefix + this.scheme.options.name] as string
     }
 
     setHeader(token: string): void {
