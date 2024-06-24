@@ -1,6 +1,5 @@
 import type { HTTPResponse, SchemeCheck, SchemePartialOptions } from '../../types';
 import type { Auth } from '..';
-import type { Router } from 'vue-router';
 import { Oauth2Scheme, type Oauth2SchemeEndpoints, type Oauth2SchemeOptions } from './oauth2';
 import { normalizePath, getProp, parseQuery } from '../../utils';
 import { IdToken, ConfigurationDocument } from '../inc';
@@ -46,7 +45,7 @@ export class OpenIDConnectScheme<OptionsT extends OpenIDConnectSchemeOptions = O
         this.configurationDocument = new ConfigurationDocument(this, this.$auth.$storage);
     }
 
-    protected updateTokens(response: HTTPResponse<any>): void {
+    protected override updateTokens(response: HTTPResponse<any>): void {
         super.updateTokens(response);
         const idToken = getProp(response._data, this.options.idToken.property) as string;
 
@@ -55,7 +54,7 @@ export class OpenIDConnectScheme<OptionsT extends OpenIDConnectSchemeOptions = O
         }
     }
 
-    check(checkStatus = false): SchemeCheck {
+    override check(checkStatus = false): SchemeCheck {
         const response: SchemeCheck = {
             valid: false,
             tokenExpired: false,
@@ -107,7 +106,7 @@ export class OpenIDConnectScheme<OptionsT extends OpenIDConnectSchemeOptions = O
         return response;
     }
 
-    async mounted() {
+    override async mounted() {
         // Get and validate configuration based upon OpenIDConnect Configuration document
         // https://openid.net/specs/openid-connect-configuration-1_0.html
         await this.configurationDocument.init();
@@ -131,7 +130,7 @@ export class OpenIDConnectScheme<OptionsT extends OpenIDConnectSchemeOptions = O
         }
     }
 
-    reset() {
+    override reset() {
         this.$auth.setUser(false);
         this.token.reset();
         this.idToken.reset();
@@ -140,7 +139,7 @@ export class OpenIDConnectScheme<OptionsT extends OpenIDConnectSchemeOptions = O
         this.configurationDocument.reset();
     }
 
-    logout() {
+    override logout() {
         if (this.options.endpoints.logout) {
             const opts: QueryObject = {
                 id_token_hint: this.idToken.get() as QueryValue,
@@ -152,7 +151,7 @@ export class OpenIDConnectScheme<OptionsT extends OpenIDConnectSchemeOptions = O
         return this.$auth.reset();
     }
 
-    async fetchUser() {
+    override async fetchUser() {
         if (!this.check().valid) {
             return;
         }

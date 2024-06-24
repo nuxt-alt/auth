@@ -45,7 +45,7 @@ export class CookieScheme<OptionsT extends CookieSchemeOptions> extends LocalSch
         super($auth, options as OptionsT, DEFAULTS as OptionsT);
     }
 
-    async mounted(): Promise<HTTPResponse<any> | void> {
+    override async mounted(): Promise<HTTPResponse<any> | void> {
         if (process.server) {
             this.$auth.ctx.$http.setHeader('referer', this.$auth.ctx.ssrContext!.event.node.req.headers.host!);
         }
@@ -59,7 +59,7 @@ export class CookieScheme<OptionsT extends CookieSchemeOptions> extends LocalSch
         return this.$auth.fetchUserOnce();
     }
 
-    check(): SchemeCheck {
+    override check(): SchemeCheck {
         const response = { valid: false };
 
         if (!super.check().valid && this.options.token?.type) {
@@ -82,7 +82,7 @@ export class CookieScheme<OptionsT extends CookieSchemeOptions> extends LocalSch
         return response;
     }
 
-    async login(endpoint: HTTPRequest): Promise<HTTPResponse<any> | void> {
+    override async login(endpoint: HTTPRequest): Promise<HTTPResponse<any> | void> {
         // Ditch any leftover local tokens before attempting to log in
         this.$auth.reset();
 
@@ -119,7 +119,7 @@ export class CookieScheme<OptionsT extends CookieSchemeOptions> extends LocalSch
         return response;
     }
 
-    async fetchUser(endpoint?: HTTPRequest): Promise<HTTPResponse<any> | void> {
+    override async fetchUser(endpoint?: HTTPRequest): Promise<HTTPResponse<any> | void> {
         if (!this.check().valid) {
             return Promise.resolve();
         }
@@ -156,7 +156,7 @@ export class CookieScheme<OptionsT extends CookieSchemeOptions> extends LocalSch
             });
     }
 
-    reset(): void {
+    override reset(): void {
         if (this.options.cookie.name) {
             this.$auth.$storage.setCookie(this.options.cookie.name, null);
         }

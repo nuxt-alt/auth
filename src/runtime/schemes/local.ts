@@ -128,6 +128,7 @@ export class LocalScheme<OptionsT extends LocalSchemeOptions = LocalSchemeOption
             this.$auth.reset({ resetInterceptor: false });
         }
 
+        endpoint = endpoint || {};
         endpoint.body = endpoint.body || {};
 
         // Add client id to payload if defined

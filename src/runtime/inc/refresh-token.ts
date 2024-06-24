@@ -36,13 +36,13 @@ export class RefreshToken {
     }
 
     reset(): void {
-        this.#resetSSRToken()
+        this.#resetSSRToken();
         this.#setToken(undefined);
         this.#setExpiration(undefined);
     }
 
     status(): TokenStatus {
-        return new TokenStatus(this.get(), this.#getExpiration(), this.scheme.options.refreshToken.httpOnly);
+        return new TokenStatus(this.get(), this.#getExpiration(), this.scheme.options.refreshToken?.httpOnly);
     }
 
     #resetSSRToken(): void {

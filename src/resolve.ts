@@ -1,23 +1,24 @@
-import type { Strategy, ModuleOptions, ProviderNames, SchemeNames, ImportOptions } from './types';
+import type { StrategyOptions, ModuleOptions, SchemeNames, ImportOptions } from './types';
 import type { Nuxt } from '@nuxt/schema';
-import { OAUTH2DEFAULTS, LOCALDEFAULTS, ProviderAliases, BuiltinSchemes } from './runtime/inc/default-properties';
-import { addAuthorize, addLocalAuthorize, assignAbsoluteEndpoints, assignDefaults } from './utils/provider';
+import { OAUTH2DEFAULTS, LOCALDEFAULTS, ProviderAliases, BuiltinSchemes, LocalSchemes, OAuth2Schemes } from './runtime/inc/default-properties';
+import { addAuthorize, addLocalAuthorize, assignAbsoluteEndpoints, assignDefaults, } from './utils/provider';
+import { hasOwn } from './utils';
 import * as AUTH_PROVIDERS from './runtime/providers';
 import { resolvePath } from '@nuxt/kit';
 import { existsSync } from 'fs';
 import { hash } from 'ohash';
 
 export async function resolveStrategies(nuxt: Nuxt, options: ModuleOptions) {
-    const strategies: Strategy[] = [];
+    const strategies: StrategyOptions[] = [];
     const strategyScheme = {} as Record<string, ImportOptions>;
 
     for (const name of Object.keys(options.strategies!)) {
-        if (!options.strategies![name] || (options.strategies as Strategy)[name].enabled === false) {
+        if (!options.strategies?.[name] || options.strategies?.[name].enabled === false) {
             continue;
         }
 
         // Clone strategy
-        const strategy = Object.assign({}, options.strategies![name]) as Strategy;
+        const strategy = Object.assign({}, options.strategies![name]);
 
         // Default name
         if (!strategy.name) {
@@ -26,14 +27,18 @@ export async function resolveStrategies(nuxt: Nuxt, options: ModuleOptions) {
 
         // Default provider (same as name)
         if (!strategy.provider) {
-            strategy.provider = strategy.name as ProviderNames;
+            strategy.provider = strategy.name;
         }
 
         // Determine if SSR is enabled
-        strategy.ssr = nuxt.options.ssr
+        if (hasOwn(strategy, 'ssr')) {
+            strategy.ssr = strategy.ssr;
+        } else {
+            strategy.ssr = nuxt.options.ssr;
+        }
 
         // Try to resolve provider
-        const provider = await resolveProvider(strategy.provider, nuxt, strategy);
+        const provider = await resolveProvider(strategy.provider as string, nuxt, strategy);
 
         delete strategy.provider;
 
@@ -50,7 +55,7 @@ export async function resolveStrategies(nuxt: Nuxt, options: ModuleOptions) {
             // Resolve and keep scheme needed for strategy
             const schemeImport = await resolveScheme(strategy.scheme);
             delete strategy.scheme;
-            strategyScheme[strategy.name] = schemeImport as ImportOptions;
+            strategyScheme[strategy.name] = schemeImport!;
 
             // Add strategy to array
             strategies.push(strategy);
@@ -90,7 +95,7 @@ export async function resolveScheme(scheme: string) {
     }
 }
 
-export async function resolveProvider(provider: string | ((...args: any[]) => any), nuxt: Nuxt, strategy: Strategy) {
+export async function resolveProvider(provider: string | ((nuxt: Nuxt, strategy: StrategyOptions, ...args: any[]) => void), nuxt: Nuxt, strategy: StrategyOptions) {
     provider = (ProviderAliases[provider as keyof typeof ProviderAliases] || provider);
 
     if (AUTH_PROVIDERS[provider as keyof typeof AUTH_PROVIDERS]) {
@@ -104,20 +109,20 @@ export async function resolveProvider(provider: string | ((...args: any[]) => an
 
     // return an empty function as it doesn't use a provider
     if (typeof provider === 'string') {
-        return (nuxt: Nuxt, strategy: Strategy) => {
-            if (['oauth2', 'openIDConnect', 'auth0'].includes(strategy.scheme!) && strategy.ssr) {
-                assignDefaults(strategy as any, OAUTH2DEFAULTS)
-                addAuthorize(nuxt, strategy as any, true)
+        return (nuxt: Nuxt, strategy: StrategyOptions) => {
+            if (OAuth2Schemes.includes(strategy.scheme!) && strategy.ssr) {
+                assignDefaults(strategy, OAUTH2DEFAULTS as typeof strategy)
+                addAuthorize(nuxt, strategy, true)
             }
 
-            if (['refresh', 'local', 'cookie'].includes(strategy.scheme!) && strategy.ssr) {
-                assignDefaults(strategy as any, LOCALDEFAULTS)
+            if (LocalSchemes.includes(strategy.scheme!) && strategy.ssr) {
+                assignDefaults(strategy, LOCALDEFAULTS as typeof strategy)
 
                 if (strategy.url) {
-                    assignAbsoluteEndpoints(strategy as any);
+                    assignAbsoluteEndpoints(strategy);
                 }
 
-                addLocalAuthorize(nuxt, strategy as any)
+                addLocalAuthorize(nuxt, strategy)
             }
         }
     }
