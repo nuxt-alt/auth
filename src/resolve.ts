@@ -1,4 +1,4 @@
-import type { StrategyOptions, ModuleOptions, ProviderNames, SchemeNames, ImportOptions } from './types';
+import type { StrategyOptions, ModuleOptions, SchemeNames, ImportOptions } from './types';
 import type { Nuxt } from '@nuxt/schema';
 import { OAUTH2DEFAULTS, LOCALDEFAULTS, ProviderAliases, BuiltinSchemes, LocalSchemes, OAuth2Schemes } from './runtime/inc/default-properties';
 import { addAuthorize, addLocalAuthorize, assignAbsoluteEndpoints, assignDefaults, } from './utils/provider';

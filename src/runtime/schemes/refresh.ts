@@ -49,7 +49,7 @@ export class RefreshScheme<OptionsT extends RefreshSchemeOptions = RefreshScheme
         this.refreshController = new RefreshController(this);
     }
 
-    check(checkStatus = false): SchemeCheck {
+    override check(checkStatus = false): SchemeCheck {
         const response = {
             valid: false,
             tokenExpired: false,
@@ -92,7 +92,7 @@ export class RefreshScheme<OptionsT extends RefreshSchemeOptions = RefreshScheme
         return response;
     }
 
-    mounted(): Promise<HTTPResponse<any> | void> {
+    override mounted(): Promise<HTTPResponse<any> | void> {
         return super.mounted({
             tokenCallback: () => {
                 if (this.options.autoLogout) {
@@ -162,7 +162,7 @@ export class RefreshScheme<OptionsT extends RefreshSchemeOptions = RefreshScheme
         this.updateTokens(response);
     }
 
-    setUserToken(token: string | boolean, refreshToken?: string | boolean): Promise<HTTPResponse<any> | void> {
+    override setUserToken(token: string | boolean, refreshToken?: string | boolean): Promise<HTTPResponse<any> | void> {
         this.token.set(token);
 
         if (refreshToken) {
@@ -173,7 +173,7 @@ export class RefreshScheme<OptionsT extends RefreshSchemeOptions = RefreshScheme
         return this.fetchUser();
     }
 
-    reset({ resetInterceptor = true } = {}): void {
+    override reset({ resetInterceptor = true } = {}): void {
         this.$auth.setUser(false);
         this.token.reset();
         this.refreshToken.reset();
@@ -187,7 +187,7 @@ export class RefreshScheme<OptionsT extends RefreshSchemeOptions = RefreshScheme
         return getProp(response._data, this.options.refreshToken.property) as string
     }
 
-    protected updateTokens(response: HTTPResponse<any>): void {
+    protected override updateTokens(response: HTTPResponse<any>): void {
         let tokenExpiresIn: number | boolean = false
         const token = this.options.token?.required ? this.extractToken(response) : true;
         const refreshToken = this.options.refreshToken.required ? this.extractRefreshToken(response) : true;
@@ -200,7 +200,7 @@ export class RefreshScheme<OptionsT extends RefreshSchemeOptions = RefreshScheme
         }
     }
 
-    protected initializeRequestInterceptor(): void {
+    protected override initializeRequestInterceptor(): void {
         this.requestHandler.initializeRequestInterceptor(
             this.options.endpoints.refresh.url
         );

@@ -2,7 +2,7 @@ import { withQuery } from 'ufo';
 import { Oauth2Scheme } from '../schemes/oauth2';
 
 export class Auth0Scheme extends Oauth2Scheme {
-    logout(): void {
+    override logout(): void {
         this.$auth.reset();
 
         const opts = {
